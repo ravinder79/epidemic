@@ -35,7 +35,7 @@ person['size'] = 0.04
 categories = np.array([1] * 50)
 categories[0] = 0.00
 
-#cmap = np.array(['r', 'g'])
+cmap = np.array(['r', 'g'])
 size = 20
 #color_data = categories
 # Construct the scatter plot which we will update during animation
@@ -59,7 +59,7 @@ def update(frame_number):
 
     # find pairs of particles undergoing a collision
     D = squareform(pdist(person['position']))
-    ind1, ind2 = np.where(D < (5 * person['size']))
+    ind1, ind2 = np.where(D < (2 * person['size']))
     unique = (ind1 < ind2)
     ind1 = ind1[unique]
     ind2 = ind2[unique]
