@@ -1,0 +1,13 @@
+.ipynb_checkpoints/
+.DS_Store
+__pycache__/
+
+checkbook copy.py
+checkbook_v2.txt
+checkbook_v2 copy.py
+checkbook copy.txt
+solutions.py
+env.py
+*.csv
+*.xlsx
+*.xlsm
