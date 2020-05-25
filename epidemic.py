@@ -70,13 +70,6 @@ def update(frame_number):
 
     for i in range (0, n):
         categories[i] = person['status'][i]
-    print(categories)
-
-    # self.state[crossed_x1, 0] = self.bounds[0] + self.size
-    # self.state[crossed_x2, 0] = self.bounds[1] - self.size
-
-    # self.state[crossed_y1, 1] = self.bounds[2] + self.size
-    # self.state[crossed_y2, 1] = self.bounds[3] - self.size
 
     person['velocity'][crossed_x1 | crossed_x2, 0] *= -1
     person['velocity'][crossed_y1 | crossed_y2, 1] *= -1
@@ -89,6 +82,4 @@ animation = animation.FuncAnimation(fig, update, interval=20)
 plt.show()
 
 
-
-plt.show()
 
