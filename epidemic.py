@@ -31,29 +31,32 @@ ax.add_patch(rect1)
 
 n = 100
 person = np.ones(n, dtype=[('position', float, 2), ('velocity', float, 2),
-                                      ('status',    float, 1),('size',    float, 1),('growth',    float, 1),('color',    float, 4)])
+                                      ('status',    float, 1),('size',    float, 1),('growth',    float, 1),('color',    float, 4), ('facecolor',    float, 4)])
+
+
+#initialize position, velocity, status, growth, color and facecolor
+
 person['position'] = np.random.uniform(-10,10, size = (n, 2))
-#person['position'] = -0.5 + np.random.random((n, 2)) 
 person['velocity'] = (-0.5 + np.random.random((n, 2))) * 10
 person['status'][0] = 0
 person['growth'] = np.random.uniform(1, 10, n)
 person['color'] = np.zeros((n,4))
 person['color'][:,1] = 0.5
-# person['color'][:,3] = 0
-# categories = np.array([1] * n)
-# categories[0] = 0.00
+person['color'][0] = [1.0, 0.0, 0.0, 1.0]
+person['facecolor'] = np.zeros((n,4))
+person['facecolor'][0] = [1.0, 0.0, 0.0, 0.6]
 day = 0
 #cmap = np.array(['r', 'g'])
-s= np.ones((n)) * 10
+s= np.ones((n)) * 20
 #color_data = categories
 # Construct the scatter plot which we will update during animation
 # scat = ax.scatter(person['position'][:,0], person['position'][:,1],
 #                   lw=0.5,  c= person['status'], s = person['size'], norm = plt.Normalize(vmin=0, vmax=1),
-#             cmap = "bwr_r", label = 'day', alpha = 0.7, edgecolors= person['color'],facecolors='none')
+#             cmap = "bwr_r", label = 'day', alpha = 0.7, edgecolors= person['color'],facecolors='#808080')
 
 scat = ax.scatter(person['position'][:,0], person['position'][:,1],
-        lw=0.5, s = person['size'], norm = plt.Normalize(vmin=0, vmax=1)
-            , label = 'day', alpha = 0.7, edgecolors= person['color'],facecolors='none')
+        lw=0.5, s = s, norm = plt.Normalize(vmin=0, vmax=1)
+            , label = 'day', edgecolors= person['color'],facecolors=person['facecolor'])
 legend = ax.legend()
 
 
@@ -65,12 +68,11 @@ def update(frame_number):
     day = int(frame_number/30)
     
     dt = 1 / 30 # 30fps
+
+    # update location
     person['position'] += dt * person['velocity']
-    person['color'][:, 3] =  (1.0/50) + person['color'][:, 3]
-    # print(person['color'][1])
-    person['color'][:,3] = np.clip(person['color'][:,3], 0, 1)
-    
     scat.set_offsets(person['position'])
+    
     # check for crossing boundary
    
     crossed_x1 = person['position'][:, 0] < bounds[0] + person['size']
@@ -78,59 +80,57 @@ def update(frame_number):
     crossed_y1 = person['position'][:, 1] < bounds[2] + person['size']
     crossed_y2 = person['position'][:, 1] > bounds[3] - person['size']
 
-    # find pairs of particles undergoing a collision
+    # find pairs of person undergoing a interaction and update health status, facecolor,
     D = squareform(pdist(person['position']))
     #ind1, ind2 = np.where(D < (2 * person['size']))
-    ind1, ind2 = np.where(D < (1))
+    ind1, ind2 = np.where(D < (0.4))
 
     unique = (ind1 < ind2)
     ind1 = ind1[unique]
     ind2 = ind2[unique]
-
+    # update edgecolor and facecolor of interacting persons
     for i1, i2 in zip(ind1, ind2):
         if person['status'][i1] == 0:
             person['status'][i2] = 0
             person['color'][i2][0] = 1
-           
             person['color'][i2][1] = 0
+            person['facecolor'][i2][0] = 1
+            person['facecolor'][i2][3] = 0.5
         if person['status'][i2] == 0:
             person['status'][i1] = 0
             person['color'][i1][0] = 1
             person['color'][i1][1] = 0
+            person['facecolor'][i1][0] = 1
+            person['facecolor'][i1][3] = 0.5
 
-
-    # for i in range(0,n):
-    #     if person['status'][i] == 0:
-    #         s[i] +=  2
-    #     if s[i] >=40:
-    #         s[i] = 20
     
-    
+    # update size of particles with status = 0
     s = np.where(person['status'] ==0, s+8, s)
-    s = np.where(s > 160, 20, s)
-    #print(person['status'])
-    print(s)
-    person['color'][:, 3] = (s-20)/140
-    print(person['color'])
+    s = np.where(s > 100, 20, s)
+    
+    person['color'][:, 3] = np.where(person['status'] ==0, (1-(s-20)/80), 1)
+
+    #Update velocity of particles at the boundary
     person['velocity'][crossed_x1 | crossed_x2, 0] *= -1
     person['velocity'][crossed_y1 | crossed_y2, 1] *= -1
+    
+    
+    # use set function to change 
     rect.set_edgecolor('k')
-   
+    scat.set_facecolor(person['facecolor'])
     scat.set_edgecolors(person['color'])
     scat.set_label(day)
     legend.remove()
     legend = plt.legend( loc='upper left')
     scat.set_sizes(s)
-    #scat.set_sizes(person['size'])
-    
-    # red_patch = mpatches.Patch( label='day')
-    # plt.legend(handles=[red_patch])
-    
 
-    return scat, [legend]
+    return scat, 
+
+
 # Construct the animation, using the update function as the animation
 # director.
 animation = animation.FuncAnimation(fig, update, interval=20)
+
 plt.show()
 
 
