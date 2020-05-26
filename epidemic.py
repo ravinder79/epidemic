@@ -46,27 +46,24 @@ person['color'][0] = [1.0, 0.0, 0.0, 1.0]
 person['facecolor'] = np.zeros((n,4))
 person['facecolor'][0] = [1.0, 0.0, 0.0, 0.6]
 day = 0
-#cmap = np.array(['r', 'g'])
 s= np.ones((n)) * 20
-#color_data = categories
-# Construct the scatter plot which we will update during animation
-# scat = ax.scatter(person['position'][:,0], person['position'][:,1],
-#                   lw=0.5,  c= person['status'], s = person['size'], norm = plt.Normalize(vmin=0, vmax=1),
-#             cmap = "bwr_r", label = 'day', alpha = 0.7, edgecolors= person['color'],facecolors='#808080')
 
+#create a scatter plot
 scat = ax.scatter(person['position'][:,0], person['position'][:,1],
         lw=0.5, s = s, norm = plt.Normalize(vmin=0, vmax=1)
             , label = 'day', edgecolors= person['color'],facecolors=person['facecolor'])
 legend = ax.legend()
 
 
+#Animation update function
 def update(frame_number):
     
     current_index = frame_number % n
 
     global categories, rect, dt, ax, fig, colormap, legend, s
-    day = int(frame_number/30)
     
+    
+    day = int(frame_number/30) 
     dt = 1 / 30 # 30fps
 
     # update location
@@ -84,10 +81,10 @@ def update(frame_number):
     D = squareform(pdist(person['position']))
     #ind1, ind2 = np.where(D < (2 * person['size']))
     ind1, ind2 = np.where(D < (0.4))
-
     unique = (ind1 < ind2)
     ind1 = ind1[unique]
     ind2 = ind2[unique]
+
     # update edgecolor and facecolor of interacting persons
     for i1, i2 in zip(ind1, ind2):
         if person['status'][i1] == 0:
@@ -108,6 +105,7 @@ def update(frame_number):
     s = np.where(person['status'] ==0, s+8, s)
     s = np.where(s > 100, 20, s)
     
+    #update alpha value as function of size
     person['color'][:, 3] = np.where(person['status'] ==0, (1-(s-20)/80), 1)
 
     #Update velocity of particles at the boundary
