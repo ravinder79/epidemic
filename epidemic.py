@@ -47,12 +47,13 @@ person['facecolor'] = np.zeros((n,4))
 person['facecolor'][0] = [1.0, 0.0, 0.0, 0.6]
 day = 0
 s= np.ones((n)) * 20
+text = ax.text(-10,22,0)
 
 #create a scatter plot
 scat = ax.scatter(person['position'][:,0], person['position'][:,1],
         lw=0.5, s = s, norm = plt.Normalize(vmin=0, vmax=1)
             , label = 'day', edgecolors= person['color'],facecolors=person['facecolor'])
-legend = ax.legend()
+#legend = ax.legend()
 
 
 #Animation update function
@@ -78,9 +79,10 @@ def update(frame_number):
     crossed_y2 = person['position'][:, 1] > bounds[3] - person['size']
 
     # find pairs of person undergoing a interaction and update health status, facecolor,
+    infection_radius = 0.4
     D = squareform(pdist(person['position']))
     #ind1, ind2 = np.where(D < (2 * person['size']))
-    ind1, ind2 = np.where(D < (0.4))
+    ind1, ind2 = np.where(D < (infection_radius))
     unique = (ind1 < ind2)
     ind1 = ind1[unique]
     ind2 = ind2[unique]
@@ -100,7 +102,8 @@ def update(frame_number):
             person['facecolor'][i1][0] = 1
             person['facecolor'][i1][3] = 0.5
 
-    
+    active_infections = (person['status']==0).sum()
+   
     # update size of particles with status = 0
     s = np.where(person['status'] ==0, s+8, s)
     s = np.where(s > 100, 20, s)
@@ -112,14 +115,15 @@ def update(frame_number):
     person['velocity'][crossed_x1 | crossed_x2, 0] *= -1
     person['velocity'][crossed_y1 | crossed_y2, 1] *= -1
     
-    
+    text.set_position((-15,22))
+    text.set_text(f'Day = {day}   Active infections = {active_infections}')
     # use set function to change 
     rect.set_edgecolor('k')
     scat.set_facecolor(person['facecolor'])
     scat.set_edgecolors(person['color'])
-    scat.set_label(day)
-    legend.remove()
-    legend = plt.legend( loc='upper left')
+    #scat.set_label(day)
+    #legend.remove()
+    #legend = plt.legend( loc='upper left')
     scat.set_sizes(s)
 
     return scat, 
