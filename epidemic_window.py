@@ -5,8 +5,6 @@ import numpy as np
 import matplotlib.animation as animation
 from scipy.spatial.distance import pdist, squareform
 import matplotlib.pyplot as plt
-from matplotlib import gridspec
-
 
 
 #------------------------------------------------------------
@@ -18,6 +16,9 @@ ax1 = fig.add_subplot(121, aspect='equal')
 ax1.axis('off')
 
 ax2 = fig.add_subplot(122)
+
+# This helps in getting rid of margins on side of axes. Default is 5%
+plt.rcParams['axes.xmargin'] = 0
 
 #set bounds for the 'box'
 bounds = [-100, 100, -100, 100]
@@ -57,7 +58,8 @@ x = [0]
 y= [0]
 y1 = [100]
 s= np.ones((n)) * 20
-text = ax1.text(-10,42,0)
+text1 = ax1.text(-10,42,'')
+text2 = ax1.text(-10,100, '')
 
 #create a scatter plot
 scat = ax1.scatter(person['position'][:,0], person['position'][:,1],
@@ -121,12 +123,16 @@ def update(frame_number):
 
 
     active_infections = (person['status']==0).sum()
+    infected_pcnt = int(active_infections/n*100)
     recovered = (person['status']==2).sum()
+    recovered_pcnt = int(recovered/n*100)
    
     # update size of particles with status = 0
     s = np.where(person['status'] ==0, s+8, s)
     s = np.where(s > 100, 20, s)
-    
+    s = np.where(person['status'] ==2, 20, s)
+
+
     #update infection duration of person
     person['duration'] = np.where(person['status'] ==0, person['duration']+0.05, person['duration'])
     
@@ -156,8 +162,8 @@ def update(frame_number):
     scat.set_facecolor(person['facecolor'])
     scat.set_edgecolors(person['color'])
     scat.set_sizes(s)
-    text.set_position((-55,105))
-    text.set_text(f'Day = {day}   Active infections = {active_infections}')
+    text1.set_position((-55,105))
+    text1.set_text(f'Day = {day}   Active infections = {active_infections}')
     
     #Plotting second subplot ax2
     x.append(day1)
@@ -167,11 +173,14 @@ def update(frame_number):
     ax2.set_ylim(ymin=0, top = 100)
     ax2.set_xlim([0, day])
     ax2.autoscale(enable=True, axis='x', tight=None)
-    ax2.plot(x,y, color = 'red')
-    ax2.plot(x,y1, color = 'gray')
+    ax2.plot(x,y, color = 'red', alpha = 0.5)
+    ax2.plot(x,y1, color = 'gray', alpha = 0.5)
     ax2.fill_between(x, y, y2=0,color='red', alpha='0.5')
     ax2.fill_between(x, y1, y2=100,color='gray', alpha='0.5')
-    
+    ax2.fill_between(x, y, y1,color='teal', alpha='0.5')
+    text2.set_position((200, 115))
+    text2.set_text(f'Infected = {infected_pcnt}%   Removed/Recovered = {recovered_pcnt}%')
+
     return scat,
 
 
