@@ -39,13 +39,15 @@ person = np.ones(n, dtype=[('position', float, 2), ('velocity', float, 2),
 #initialize position, velocity, status, color and facecolor
 
 person['position'] = np.random.uniform(-40,40, size = (n, 2))
-person['velocity'] = (-0.5 + np.random.random((n, 2))) * 50
+person['velocity'] = (-0.5 + np.random.random((n, 2))) * 75
 person['color'] = np.zeros((n,4))
 person['color'][:,1] = 0.5
 person['color'][0] = [1.0, 0.0, 0.0, 1.0]
 person['facecolor'] = np.zeros((n,4))
-person['facecolor'][0] = [1.0, 0.0, 0.0, 0.6]
+person['facecolor'] = [0, 0.55 , 0.52, 0.5] # Set color to 'teal with alpha = 0.5
 
+#initialize first infected person
+person['facecolor'][0] = [1.0, 0.0, 0.0, 0.6]
 person['position'][0] = [0.0 , 0.0]
 person['status'][0] = 0
 person['duration'] = 0.0
@@ -111,15 +113,15 @@ def update(frame_number):
             if person['status'][i2] == 0:
                 person['color'][i2][0] = 1
                 person['color'][i2][1] = 0
-                person['facecolor'][i2][0] = 1
-                person['facecolor'][i2][3] = 0.5
+                person['facecolor'][i2] = [1,0,0,0.6]
+              
         elif person['status'][i2] == 0:
             person['status'][i1] = np.random.choice([0,1],p = [1-social_distancing, social_distancing])
             if person['status'][i1] == 0:
                 person['color'][i1][0] = 1
                 person['color'][i1][1] = 0
-                person['facecolor'][i1][0] = 1
-                person['facecolor'][i1][3] = 0.5
+                person['facecolor'][i1] = [1,0,0,0.6]
+
 
 
     active_infections = (person['status']==0).sum()
@@ -148,7 +150,7 @@ def update(frame_number):
     person['color'][:, 0] = np.where(person['status'] ==2, 0.5,person['color'][:, 0])
 
     #changing color of persons with status =2 (recovered/removed)
-    person['facecolor'][:, 2] = np.where(person['status'] ==2, 0.5,person['facecolor'][:, 2] )
+    person['facecolor'][:, 2] = np.where(person['status'] ==2, 0.5,person['facecolor'][:, 2])
     person['facecolor'][:, 1] = np.where(person['status'] ==2, 0.5,person['facecolor'][:, 1])
     person['facecolor'][:, 0] = np.where(person['status'] ==2, 0.5,person['facecolor'][:, 0])
   
@@ -186,7 +188,7 @@ def update(frame_number):
 
 # Construct the animation, using the update function as the animation
 # director.
-animation = animation.FuncAnimation(fig, update, interval=20)
+animation = animation.FuncAnimation(fig, update, interval=10)
 
 plt.show()
 
