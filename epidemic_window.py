@@ -10,7 +10,7 @@ from matplotlib import gridspec
 
 
 #------------------------------------------------------------
-global day, s, x,y, day1
+global day, s, x,y, day1, y1
 #create a figure object and axes
 fig = plt.figure(figsize=(14, 6))
 
@@ -32,14 +32,13 @@ ax1.add_patch(rect)
 
 n = 150
 person = np.ones(n, dtype=[('position', float, 2), ('velocity', float, 2),
-                                      ('status',    float, 1),('size',    float, 1),('growth',    float, 1),('color',    float, 4), ('facecolor',    float, 4)])
+                                      ('status',    float, 1), ('duration', float, 1),('size',    float, 1),('color',    float, 4), ('facecolor',    float, 4)])
 
 
-#initialize position, velocity, status, growth, color and facecolor
+#initialize position, velocity, status, color and facecolor
 
 person['position'] = np.random.uniform(-40,40, size = (n, 2))
 person['velocity'] = (-0.5 + np.random.random((n, 2))) * 50
-person['growth'] = np.random.uniform(1, 10, n)
 person['color'] = np.zeros((n,4))
 person['color'][:,1] = 0.5
 person['color'][0] = [1.0, 0.0, 0.0, 1.0]
@@ -48,12 +47,15 @@ person['facecolor'][0] = [1.0, 0.0, 0.0, 0.6]
 
 person['position'][0] = [0.0 , 0.0]
 person['status'][0] = 0
+person['duration'] = 0.0
+#person['duration'][0] = 
 
 
 day = 0
 day1 = 0.00
 x = [0]
-y= [1]
+y= [0]
+y1 = [100]
 s= np.ones((n)) * 20
 text = ax1.text(-10,42,0)
 
@@ -73,7 +75,9 @@ def update(frame_number):
     
     
     day = int(frame_number/20)
+    
     day1= frame_number/20
+    #print(day1)
     dt = 1 / 30 # 30fps
     infection_radius = 2.0
     social_distancing = 0.0
@@ -117,19 +121,35 @@ def update(frame_number):
 
 
     active_infections = (person['status']==0).sum()
+    recovered = (person['status']==2).sum()
    
     # update size of particles with status = 0
     s = np.where(person['status'] ==0, s+8, s)
     s = np.where(s > 100, 20, s)
     
+    #update infection duration of person
+    person['duration'] = np.where(person['status'] ==0, person['duration']+0.05, person['duration'])
+    
+    # Update status of person when infection duration > 15 days
+    person['status'] = np.where(person['duration'] > 21, 2, person['status'])
+
     #update alpha value as function of size
     person['color'][:, 3] = np.where(person['status'] ==0, (1-(s-20)/80), 1)
+   
+    #changing edgecolor of persons with status =2 (recovered/removed)
+    person['color'][:, 2] = np.where(person['status'] ==2, 0.5, person['color'][:, 2])
+    person['color'][:, 1] = np.where(person['status'] ==2, 0.5, person['color'][:, 1])
+    person['color'][:, 0] = np.where(person['status'] ==2, 0.5,person['color'][:, 0])
+
+    #changing color of persons with status =2 (recovered/removed)
+    person['facecolor'][:, 2] = np.where(person['status'] ==2, 0.5,person['facecolor'][:, 2] )
+    person['facecolor'][:, 1] = np.where(person['status'] ==2, 0.5,person['facecolor'][:, 1])
+    person['facecolor'][:, 0] = np.where(person['status'] ==2, 0.5,person['facecolor'][:, 0])
+  
 
     #Update velocity of particles at the boundary
     person['velocity'][crossed_x1 | crossed_x2, 0] *= -1
     person['velocity'][crossed_y1 | crossed_y2, 1] *= -1
-    
-    
     
     # use set function to change color and sizes
     rect.set_edgecolor('k')
@@ -138,16 +158,19 @@ def update(frame_number):
     scat.set_sizes(s)
     text.set_position((-55,105))
     text.set_text(f'Day = {day}   Active infections = {active_infections}')
-
+    
     #Plotting second subplot ax2
     x.append(day1)
     y.append(active_infections/n*100)
+    y1.append(100 - (recovered/n*100))
+    ax2.clear()
     ax2.set_ylim(ymin=0, top = 100)
     ax2.set_xlim([0, day])
     ax2.autoscale(enable=True, axis='x', tight=None)
-    ax2.plot(x,y)
-    ax2.fill_between(x, y, y2=0,color='grey', alpha='0.5')
-    
+    ax2.plot(x,y, color = 'red')
+    ax2.plot(x,y1, color = 'gray')
+    ax2.fill_between(x, y, y2=0,color='red', alpha='0.5')
+    ax2.fill_between(x, y1, y2=100,color='gray', alpha='0.5')
     
     return scat,
 
