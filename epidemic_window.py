@@ -139,15 +139,16 @@ def update(frame_number):
     text.set_position((-55,105))
     text.set_text(f'Day = {day}   Active infections = {active_infections}')
 
-
+    #Plotting second subplot ax2
     x.append(day1)
     y.append(active_infections/n*100)
-  
     ax2.set_ylim(ymin=0, top = 100)
     ax2.set_xlim([0, day])
     ax2.autoscale(enable=True, axis='x', tight=None)
     ax2.plot(x,y)
     ax2.fill_between(x, y, y2=0,color='grey', alpha='0.5')
+    
+    
     return scat,
 
 
