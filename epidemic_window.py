@@ -5,35 +5,30 @@ import numpy as np
 import matplotlib.animation as animation
 from scipy.spatial.distance import pdist, squareform
 import matplotlib.pyplot as plt
+from matplotlib import gridspec
 
 
 
 #------------------------------------------------------------
-global day, s, x,y
+global day, s, x,y, day1
 #create a figure object and axes
-fig = plt.figure()
-#plt.tight_layout()
-#fig.subplots_adjust(left=0, right=1.0, bottom=0, top=1)
-ax1 = fig.add_subplot(121)
-# aspect='equal', autoscale_on=True)
-                    # xlim=(-33.2, 33.2), ylim=(-32.4, 32.4))
-ax2 = fig.add_subplot(122)
-#, aspect='equal', autoscale_on=True)
-# set bounds for the box
+fig = plt.figure(figsize=(14, 6))
 
-bounds = [-100, 100, -100, 100]
+ax1 = fig.add_subplot(121, aspect='equal')
 ax1.axis('off')
 
-bounds1 = [0, 0, 1]
-#plt.axis('off')
+ax2 = fig.add_subplot(122)
+
+#set bounds for the 'box'
+bounds = [-100, 100, -100, 100]
+
 #rect is the box edge
 rect = plt.Rectangle(bounds[::2],
                      bounds[1] - bounds[0],
                      bounds[3] - bounds[2],
                      ec='none', lw=2, fc='none')
 ax1.add_patch(rect)
-# rect1 = plt.Rectangle((0.2, 0.75), 0.4, 0.15, ec = 'none', alpha=0.3, label = 'day', fc = 'none')
-# ax.add_patch(rect1)
+
 
 n = 150
 person = np.ones(n, dtype=[('position', float, 2), ('velocity', float, 2),
@@ -56,10 +51,11 @@ person['status'][0] = 0
 
 
 day = 0
+day1 = 0.00
 x = [0]
 y= [1]
 s= np.ones((n)) * 20
-text = ax1.text(-10,22,0)
+text = ax1.text(-10,42,0)
 
 #create a scatter plot
 scat = ax1.scatter(person['position'][:,0], person['position'][:,1],
@@ -76,7 +72,8 @@ def update(frame_number):
     global categories, rect, dt, ax, fig, colormap, legend, s
     
     
-    day = int(frame_number/20) 
+    day = int(frame_number/20)
+    day1= frame_number/20
     dt = 1 / 30 # 30fps
     infection_radius = 2.0
     social_distancing = 0.0
@@ -139,18 +136,18 @@ def update(frame_number):
     scat.set_facecolor(person['facecolor'])
     scat.set_edgecolors(person['color'])
     scat.set_sizes(s)
-    text.set_position((-15,22))
+    text.set_position((-55,105))
     text.set_text(f'Day = {day}   Active infections = {active_infections}')
 
 
-    x.append(day)
-    y.append(active_infections/150*100)
-    #scat1.set_data(x, y)s
-    #scat1 = ax2.plot(x[day],y[day],marker='o',color="r")
-    ax2.clear()
+    x.append(day1)
+    y.append(active_infections/n*100)
+  
+    ax2.set_ylim(ymin=0, top = 100)
+    ax2.set_xlim([0, day])
+    ax2.autoscale(enable=True, axis='x', tight=None)
     ax2.plot(x,y)
-    #plt.xlim(0,50)
-    plt.ylim(0,100)
+    ax2.fill_between(x, y, y2=0,color='grey', alpha='0.5')
     return scat,
 
 
