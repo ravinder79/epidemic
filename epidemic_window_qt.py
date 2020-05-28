@@ -104,7 +104,7 @@ def update(frame_number):
     # update location
     person['position'] += dt * person['velocity']
     scat.set_offsets(person['position'])
-    
+    print(person['velocity'])
     # check for crossing boundary
   
     crossed_x1 = (person['position'][:, 0] < bounds[0] + person['size']+3) & (person['status'] != 3)
@@ -167,8 +167,18 @@ def update(frame_number):
     #update infection duration of person
     person['duration'] = np.where(person['status'] ==0, person['duration']+0.05, person['duration'])
     
-    # Update status of person when infection duration > 15 days
+    # Update status of person when infection duration > 21 days
     person['status'] = np.where(person['duration'] > 21, 2, person['status'])
+
+
+    # return of quarantined persons who have recovered after 21 days
+
+    for i in range(len((person['qtflag'] == 1) & (person['duration'] > 21))):
+        if ((person['qtflag'][i] == 1) & (person['duration'][i] > 21)):
+            person['qtflag'][i] = 0
+            person['position'][i] = [np.random.uniform(-98,98),np.random.uniform(-98,98)]
+            person['velocity'][i] = (-0.5 + np.random.random(2)) * 50
+        
 
     #update alpha value as function of size
     person['color'][:, 3] = np.where(person['status'] ==0, (1-(s-20)/80), 1)
@@ -182,8 +192,6 @@ def update(frame_number):
     person['facecolor'][:, 2] = np.where(person['status'] ==2, 0.5,person['facecolor'][:, 2])
     person['facecolor'][:, 1] = np.where(person['status'] ==2, 0.5,person['facecolor'][:, 1])
     person['facecolor'][:, 0] = np.where(person['status'] ==2, 0.5,person['facecolor'][:, 0])
-  
-
    
     
     # use set function to change color and sizes
@@ -219,6 +227,3 @@ def update(frame_number):
 animation = animation.FuncAnimation(fig, update, interval=10)
 
 plt.show()
-
-
-
