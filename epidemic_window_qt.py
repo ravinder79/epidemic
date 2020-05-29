@@ -6,6 +6,7 @@ import matplotlib.animation as animation
 from scipy.spatial.distance import pdist, squareform
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+import math
 
 
 #------------------------------------------------------------
@@ -14,12 +15,11 @@ global day, s, x,y, day1, y1
 fig = plt.figure(figsize=(14, 6))
 gs1 = fig.add_gridspec(nrows=6, ncols=6)
 ax1 = fig.add_subplot((gs1[:, 0:4]), aspect='equal')
-#ax1.axis('off')
+ax1.axis('off')
 
 ax2 = fig.add_subplot(gs1[1:5, 4:6])
 
-#ax3 = fig.add_subplot(gs1[2:, 2:])
-#ax3.axis('off')
+
 
 # This helps in getting rid of margins on side of axes. Default is 5%
 plt.rcParams['axes.xmargin'] = 0.0
@@ -94,7 +94,6 @@ def update(frame_number):
     
     
     day = int(frame_number/20)
-    
     day1= frame_number/20
     #print(day1)
     dt = 1 / 30 # 30fps
@@ -102,10 +101,13 @@ def update(frame_number):
     social_distancing = 0.0
 
     # update location
-    person['position'] += dt * person['velocity']
+
+    for i in range(n):
+        if (person['qtflag'][i] !=2):
+            person['position'][i][0] += dt * person['velocity'][i][0]
+            person['position'][i][1] += dt * person['velocity'][i][1]
+
     scat.set_offsets(person['position'])
-    print(person['velocity'])
-    # check for crossing boundary
   
     crossed_x1 = (person['position'][:, 0] < bounds[0] + person['size']+3) & (person['status'] != 3)
     crossed_x2 = (person['position'][:, 0] > bounds[1] - person['size']-3) & (person['status'] != 3)
@@ -133,7 +135,7 @@ def update(frame_number):
                 person['color'][i2][0] = 1
                 person['color'][i2][1] = 0
                 person['facecolor'][i2] = [1,0,0,0.6]
-                person['qtflag'][i2] = np.random.choice([0,1],p = [0.2, 0.8]) # quarantine flag
+                person['qtflag'][i2] = np.random.choice([0,1],p = [0.5, 0.5]) # quarantine flag
               
         elif person['status'][i2] == 0:
             person['status'][i1] = np.random.choice([0,1],p = [1-social_distancing, social_distancing])
@@ -141,7 +143,7 @@ def update(frame_number):
                 person['color'][i1][0] = 1
                 person['color'][i1][1] = 0
                 person['facecolor'][i1] = [1,0,0,0.6]
-                person['qtflag'][i1] = np.random.choice([0,1],p = [0.2, 0.8])  # quarantine flag
+                person['qtflag'][i1] = np.random.choice([0,1],p = [0.5, 0.5])  # quarantine flag
 
     active_infections = (person['status']==0).sum()
     infected_pcnt = int(active_infections/n*100)
@@ -149,13 +151,41 @@ def update(frame_number):
     recovered_pcnt = int(recovered/n*100)
     
     # Introducing quarantine. 
-    
-    for i in range(len((person['qtflag'] == 1) & (person['position'][:,1] > -100))):
-        if ((person['qtflag'][i] == 1) & (person['position'][i][1] > -100) & (infected_pcnt+recovered_pcnt > 10)):
-            person['position'][i] = [np.random.uniform(-18,18),np.random.uniform(-148,-112)]
-            person['velocity'][i] = [0,0]
-        
+   
+    stepx = 10
+    stepy = 15
+    for i in range(len((person['qtflag'] == 1) & (person['position'][:,1] > -100) & (person['duration'] > 1))):
+        if ((person['qtflag'][i] == 1) & (person['position'][i][1] > -100) & (infected_pcnt+recovered_pcnt > 10) & (person['duration'][i] > 1)):
+            person['qtflag'][i] = 2
+           
 
+    ls = np.where(person['qtflag'] ==2)
+    ls = ls[0]
+
+    for i in ls:
+        if (person['position'][i][0]) >10:
+            person['position'][i][0] = person['position'][i][0] - stepx
+        if (person['position'][i][0]) < -10:
+            person['position'][i][0] = person['position'][i][0] + stepx
+        if (person['position'][i][1] > (-130)):
+            person['position'][i][1] = person['position'][i][1] - stepy
+
+
+    # for i in range(len((person['qtflag'] == 1) & (person['position'][:,1] > -100) & (person['duration'] > 1))):
+    #     if ((person['qtflag'][i] == 1) & (person['position'][i][1] > -100) & (infected_pcnt+recovered_pcnt > 10) & (person['duration'][i] > 1)):
+    #         ini= person['position'][i]
+
+    #         #person['position'][i] = [np.random.uniform(-18,18),np.random.uniform(-148,-112)]
+    #         d = math.sqrt((ini[0] - np.random.uniform(-18,18))**2 + (ini[1] - np.random.uniform(-148,-112))**2)
+
+    #         # x_values = [ini[0], np.random.uniform(-18,18)]
+    #         # y_values = [ini[1], np.random.uniform(-148,-112)]
+
+    #         # x_values = [ini[0], person['position'][i][0]]
+    #         # y_values = [ini[1], person['position'][i][1]]
+    #         #ax1.plot(x_values,y_values, c = 'r')
+    #         #person['velocity'][i] = [0,0]
+    #         person['velocity'][i] = [2000/d*(ini[0] - person['position'][i][0]),2000/d*(ini[1] - person['position'][i][1])]
 
     # update size of particles with status = 0
     s = np.where(person['status'] ==0, s+8, s)
@@ -163,13 +193,11 @@ def update(frame_number):
     s = np.where(person['status'] ==2, 20, s)
     s = np.where(person['qtflag'] ==1, 20, s)
 
-
     #update infection duration of person
     person['duration'] = np.where(person['status'] ==0, person['duration']+0.05, person['duration'])
     
     # Update status of person when infection duration > 21 days
     person['status'] = np.where(person['duration'] > 21, 2, person['status'])
-
 
     # return of quarantined persons who have recovered after 21 days
 
