@@ -56,7 +56,10 @@ person = np.ones(n, dtype=[('position', float, 2), ('velocity', float, 2),
 # 1: suseptible
 # 2: Recovered/Removed
 
-
+#####
+# Global Quarantine Flag## 
+#0 for off, 1 for on
+quarantine = 1
 
 #initialize position, velocity, status, color and facecolor
 
@@ -153,6 +156,11 @@ def update(frame_number):
                 person['color'][i1][1] = 0
                 person['facecolor'][i1] = [1,0,0,0.6]
                 person['qtflag'][i1] = np.random.choice([0,1],p = [0.1, 0.9])  # quarantine flag
+
+    # Used to turn on/off quarantine
+    if quarantine == 0:
+        person['qtflag'] = 0
+
 
     active_infections = (person['status']==0).sum()
     infected_pcnt = int(active_infections/n*100)
