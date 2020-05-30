@@ -1,5 +1,5 @@
 """
-Epidemic/Pandemic spread simulation. Adding another window to visualize total infected and healthy population.
+Epidemic/Pandemic spread simulation. Added quarantine scenario.
 """
 import numpy as np
 import matplotlib.animation as animation
@@ -48,7 +48,6 @@ person = np.ones(n, dtype=[('position', float, 2), ('velocity', float, 2),
 # 0: Infected
 # 1: suseptible
 # 2: Recovered/Removed
-# 3: quarantined
 
 #initialize position, velocity, status, color and facecolor
 
@@ -66,7 +65,6 @@ person['position'][0] = [0.0 , 0.0]
 person['status'][0] = 0
 person['duration'] = 0.0
 person['qtflag'] = 0
-#person['duration'][0] = 
 
 
 day = 0
@@ -77,12 +75,12 @@ y1 = [100]
 s= np.ones((n)) * 20
 text1 = ax1.text(-10,42,'')
 text2 = ax1.text(-10,100, '')
+text3 = ax1.text(-10,42,'')
+
 
 #create a scatter plot
 scat = ax1.scatter(person['position'][:,0], person['position'][:,1],
         lw=0.5, s = s, label = 'day', edgecolors= person['color'],facecolors=person['facecolor'])
-
-#scat1, = ax2.plot(x,y,marker='o',color="r")
 
 
 #Animation update function
@@ -103,16 +101,16 @@ def update(frame_number):
     # update location
 
     for i in range(n):
-        if (person['qtflag'][i] !=2):
+        if (person['qtflag'][i] !=2) and person['position'][i][1] > -100 :
             person['position'][i][0] += dt * person['velocity'][i][0]
             person['position'][i][1] += dt * person['velocity'][i][1]
 
     scat.set_offsets(person['position'])
   
-    crossed_x1 = (person['position'][:, 0] < bounds[0] + person['size']+3) & (person['status'] != 3)
-    crossed_x2 = (person['position'][:, 0] > bounds[1] - person['size']-3) & (person['status'] != 3)
-    crossed_y1 = (person['position'][:, 1] < bounds[2] + person['size']+3) & (person['status'] != 3)
-    crossed_y2 = (person['position'][:, 1] > bounds[3] - person['size']-3) & (person['status'] != 3)
+    crossed_x1 = (person['position'][:, 0] < bounds[0] + person['size']+3) & (person['qtflag'] != 2)
+    crossed_x2 = (person['position'][:, 0] > bounds[1] - person['size']-3) & (person['qtflag'] != 2)
+    crossed_y1 = (person['position'][:, 1] < bounds[2] + person['size']+3) & (person['qtflag'] != 2)
+    crossed_y2 = (person['position'][:, 1] > bounds[3] - person['size']-3) & (person['qtflag'] != 2)
    
     #Update velocity for persons at boundary to avoid going out of box
     person['velocity'][crossed_x1 | crossed_x2, 0] *= -1
@@ -127,7 +125,7 @@ def update(frame_number):
 
     # update status, edgecolor and facecolor of interacting persons
     for i1, i2 in zip(ind1, ind2):
-        if person['status'][i1] == person['status'][i2]:
+        if (person['status'][i1] == person['status'][i2]) & (person['position'][i1][1] < -105):
             continue 
         elif person['status'][i1] == 0:
             person['status'][i2] = np.random.choice([0,1],p =[1-social_distancing, social_distancing])
@@ -135,7 +133,7 @@ def update(frame_number):
                 person['color'][i2][0] = 1
                 person['color'][i2][1] = 0
                 person['facecolor'][i2] = [1,0,0,0.6]
-                person['qtflag'][i2] = np.random.choice([0,1],p = [0.5, 0.5]) # quarantine flag
+                person['qtflag'][i2] = np.random.choice([0,1],p = [0.1, 0.9]) # quarantine flag
               
         elif person['status'][i2] == 0:
             person['status'][i1] = np.random.choice([0,1],p = [1-social_distancing, social_distancing])
@@ -143,49 +141,37 @@ def update(frame_number):
                 person['color'][i1][0] = 1
                 person['color'][i1][1] = 0
                 person['facecolor'][i1] = [1,0,0,0.6]
-                person['qtflag'][i1] = np.random.choice([0,1],p = [0.5, 0.5])  # quarantine flag
+                person['qtflag'][i1] = np.random.choice([0,1],p = [0.1, 0.9])  # quarantine flag
 
     active_infections = (person['status']==0).sum()
     infected_pcnt = int(active_infections/n*100)
     recovered = (person['status']==2).sum()
     recovered_pcnt = int(recovered/n*100)
-    
-    # Introducing quarantine. 
-   
-    stepx = 10
+    quarantined = (person['qtflag'] == 2).sum()
+
+    #update infection duration of person
+    person['duration'] = np.where(person['status'] ==0, person['duration']+0.05, person['duration'])
+
+    # Introducing quarantine.  
+    stepx = 15
     stepy = 15
-    for i in range(len((person['qtflag'] == 1) & (person['position'][:,1] > -100) & (person['duration'] > 1))):
-        if ((person['qtflag'][i] == 1) & (person['position'][i][1] > -100) & (infected_pcnt+recovered_pcnt > 10) & (person['duration'][i] > 1)):
+    for i in range(len((person['qtflag'] == 1) & (person['position'][:,1] >= -100) & (person['duration'] > 1))):
+        if ((person['qtflag'][i] == 1) & (person['position'][i][1] >= -100) & (infected_pcnt+recovered_pcnt > 10) & (person['duration'][i] > 1)):
             person['qtflag'][i] = 2
            
 
-    ls = np.where(person['qtflag'] ==2)
+    ls = np.where((person['qtflag'] ==2) & (person['status'] == 0))
     ls = ls[0]
 
     for i in ls:
+       
         if (person['position'][i][0]) >10:
             person['position'][i][0] = person['position'][i][0] - stepx
         if (person['position'][i][0]) < -10:
             person['position'][i][0] = person['position'][i][0] + stepx
         if (person['position'][i][1] > (-130)):
             person['position'][i][1] = person['position'][i][1] - stepy
-
-
-    # for i in range(len((person['qtflag'] == 1) & (person['position'][:,1] > -100) & (person['duration'] > 1))):
-    #     if ((person['qtflag'][i] == 1) & (person['position'][i][1] > -100) & (infected_pcnt+recovered_pcnt > 10) & (person['duration'][i] > 1)):
-    #         ini= person['position'][i]
-
-    #         #person['position'][i] = [np.random.uniform(-18,18),np.random.uniform(-148,-112)]
-    #         d = math.sqrt((ini[0] - np.random.uniform(-18,18))**2 + (ini[1] - np.random.uniform(-148,-112))**2)
-
-    #         # x_values = [ini[0], np.random.uniform(-18,18)]
-    #         # y_values = [ini[1], np.random.uniform(-148,-112)]
-
-    #         # x_values = [ini[0], person['position'][i][0]]
-    #         # y_values = [ini[1], person['position'][i][1]]
-    #         #ax1.plot(x_values,y_values, c = 'r')
-    #         #person['velocity'][i] = [0,0]
-    #         person['velocity'][i] = [2000/d*(ini[0] - person['position'][i][0]),2000/d*(ini[1] - person['position'][i][1])]
+            
 
     # update size of particles with status = 0
     s = np.where(person['status'] ==0, s+8, s)
@@ -193,20 +179,21 @@ def update(frame_number):
     s = np.where(person['status'] ==2, 20, s)
     s = np.where(person['qtflag'] ==1, 20, s)
 
-    #update infection duration of person
-    person['duration'] = np.where(person['status'] ==0, person['duration']+0.05, person['duration'])
     
     # Update status of person when infection duration > 21 days
     person['status'] = np.where(person['duration'] > 21, 2, person['status'])
 
     # return of quarantined persons who have recovered after 21 days
+    lsq = np.where((person['qtflag'] ==2) & (person['status'] == 2))
+    lsq = lsq[0]
 
-    for i in range(len((person['qtflag'] == 1) & (person['duration'] > 21))):
-        if ((person['qtflag'][i] == 1) & (person['duration'][i] > 21)):
+    for i in lsq:   
+        if (person['position'][i][1] < (-100.5)):
+            person['position'][i][1] = person['position'][i][1] + 25                  
+        if (person['position'][i][1] >= -100.5):
             person['qtflag'][i] = 0
-            person['position'][i] = [np.random.uniform(-98,98),np.random.uniform(-98,98)]
-            person['velocity'][i] = (-0.5 + np.random.random(2)) * 50
-        
+        else:
+            continue
 
     #update alpha value as function of size
     person['color'][:, 3] = np.where(person['status'] ==0, (1-(s-20)/80), 1)
@@ -230,7 +217,9 @@ def update(frame_number):
     scat.set_sizes(s)
     text1.set_position((-55,105))
     text1.set_text(f'Day = {day}   Active infections = {active_infections}')
-    
+
+
+
     #Plotting second subplot ax2
     x.append(day1)
     y.append(active_infections/n*100)
@@ -246,6 +235,8 @@ def update(frame_number):
     ax2.fill_between(x, y, y1,color='teal', alpha='0.5')
     text2.set_position((200, 115))
     text2.set_text(f'Infected = {infected_pcnt}%   Removed/Recovered = {recovered_pcnt}%')
+    text3.set_position((-50,-160))
+    text3.set_text(f'Total Quarantined = {quarantined}')
 
     return scat,
 
