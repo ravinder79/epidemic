@@ -1,5 +1,5 @@
 """
-Epidemic/Pandemic spread simulation. Added quarantine scenario.
+Epidemic/Pandemic spread simulation. Added quarantine scenario. 
 """
 import numpy as np
 import matplotlib.animation as animation
@@ -7,18 +7,25 @@ from scipy.spatial.distance import pdist, squareform
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import math
+#matplotlib.use("Agg")
+# Writer = animation.writers['ffmpeg']
+# writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
 
 
 #------------------------------------------------------------
 global day, s, x,y, day1, y1
+day = 0
+day1 = 0
+
+
 #create a figure object and axes
 fig = plt.figure(figsize=(14, 6))
+plt.rcParams['figure.facecolor'] = 'black'
 gs1 = fig.add_gridspec(nrows=6, ncols=6)
 ax1 = fig.add_subplot((gs1[:, 0:4]), aspect='equal')
 ax1.axis('off')
 
 ax2 = fig.add_subplot(gs1[1:5, 4:6])
-
 
 
 # This helps in getting rid of margins on side of axes. Default is 5%
@@ -48,6 +55,8 @@ person = np.ones(n, dtype=[('position', float, 2), ('velocity', float, 2),
 # 0: Infected
 # 1: suseptible
 # 2: Recovered/Removed
+
+
 
 #initialize position, velocity, status, color and facecolor
 
@@ -82,13 +91,15 @@ text3 = ax1.text(-10,42,'')
 scat = ax1.scatter(person['position'][:,0], person['position'][:,1],
         lw=0.5, s = s, label = 'day', edgecolors= person['color'],facecolors=person['facecolor'])
 
+line1, = ax2.plot(x,y)
+line2, = ax2.plot(x,y1)
 
 #Animation update function
 def update(frame_number):
     
     current_index = frame_number % n
 
-    global categories, rect, dt, ax, fig, colormap, legend, s
+    global  rect, dt, ax, fig, colormap, legend, s, day, day1
     
     
     day = int(frame_number/20)
@@ -225,24 +236,26 @@ def update(frame_number):
     y.append(active_infections/n*100)
     y1.append(100 - (recovered/n*100))
     ax2.clear()
+    line1.set_data(x,y)
+    p = ax2.fill_between(x, y, y2=0,color='red', alpha='0.5')
+    p1 = ax2.fill_between(x, y1, y2=100,color='gray', alpha='0.5')
+    p2 = ax2.fill_between(x, y, y1,color='teal', alpha='0.5')
+
+    line2.set_data(x,y1)
     ax2.set_ylim(ymin=0, top = 100)
-    ax2.set_xlim([0, day])
-    ax2.autoscale(enable=True, axis='x', tight=None)
-    ax2.plot(x,y, color = 'red', alpha = 0.5)
-    ax2.plot(x,y1, color = 'gray', alpha = 0.5)
-    ax2.fill_between(x, y, y2=0,color='red', alpha='0.5')
-    ax2.fill_between(x, y1, y2=100,color='gray', alpha='0.5')
-    ax2.fill_between(x, y, y1,color='teal', alpha='0.5')
+    ax2.set_xlim([0, day1])
     text2.set_position((200, 115))
     text2.set_text(f'Infected = {infected_pcnt}%   Removed/Recovered = {recovered_pcnt}%')
     text3.set_position((-50,-160))
     text3.set_text(f'Total Quarantined = {quarantined}')
-
-    return scat,
+    
+    return scat,line1, p, p1, p2
 
 
 # Construct the animation, using the update function as the animation
 # director.
-animation = animation.FuncAnimation(fig, update, interval=10)
+anim = animation.FuncAnimation(fig, update, interval=10)
 
+#save command below
+#anim.save('im.mp4', fps = 15.0, dpi=500)
 plt.show()
