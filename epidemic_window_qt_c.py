@@ -187,7 +187,7 @@ def update(frame_number):
 
 
     t1 = (person['trip']==1).sum()
-    print(f't1 = {t1}')
+
     
     t0 = np.where((person['trip'] == 0))[0]
     # Central Location trip added
@@ -201,8 +201,7 @@ def update(frame_number):
 
     if t1 < 5:
         xs = np.where(person['trip'][cl] == 0)[0]
-        print('xxx')
-        print(xs)
+       
         for i in xs:
             list1 = np.where(person['trip']==0)[0]
             cl[i] = np.random.choice(list1, 1)
@@ -210,9 +209,7 @@ def update(frame_number):
         for c in cl:
             person['trip'][c] = 1
 
-    print(f'po = {po}')
-    print(f't == {t1}')
-    print(f'cl0 = {cl[0]}')
+  
   
 
     #hop    
@@ -221,10 +218,7 @@ def update(frame_number):
         if person['trip'][c] == 1 and person['counter'][c] <= 3:
             person['position'][c][0] = hop.hop(0,  person['position'][c][0])
             person['position'][c][1] = hop.hop(0, person['position'][c][1])
-            #print(hop.hop(0, 0, person['position'][c][0], person['position'][c][1]))
-            print('aaa')
-            print(person['position'][c])
-
+          
 
         if (abs(person['position'][c][0]) < 5)  and (abs(person['position'][c][1]) < 5):
             person['counter'][c] = person['counter'][c] + 1 
@@ -232,30 +226,30 @@ def update(frame_number):
 
         if (person['counter'][c] > 3 and ((abs(person['position'][c][0]) < abs(po[np.where(cl == c)[0][0]][0])) or (abs(person['position'][c][1]) < abs(po[np.where(cl == c)[0][0]][1])))):
             
-            print('bbb')
-            print('going in')
-            print(print(person['position'][c]))
+            # print('bbb')
+            # print('going in')
+            # print(print(person['position'][c]))
             person['position'][c][0] = hop.hopr(po[np.where(cl == c)[0][0]][0],person['position'][c][0])
             person['position'][c][1] = hop.hopr(po[np.where(cl == c)[0][0]][1],person['position'][c][1])
 
-            print('coming out')
-            print(person['position'][c])
-            print(po[np.where(cl == c)[0][0]][0])
-            print(po[np.where(cl == c)[0][0]][1])
-            print(f'counter {c} =')
-            print(person['counter'][c])
-            print('diff = ')
-            print(abs(person['position'][c][0] - po[np.where(cl == c)[0][0]][0]))
-            print(abs(person['position'][c][1] - po[np.where(cl == c)[0][0]][1]))
+            # print('coming out')
+            # print(person['position'][c])
+            # print(po[np.where(cl == c)[0][0]][0])
+            # print(po[np.where(cl == c)[0][0]][1])
+            # print(f'counter {c} =')
+            # print(person['counter'][c])
+            # print('diff = ')
+            # print(abs(person['position'][c][0] - po[np.where(cl == c)[0][0]][0]))
+            # print(abs(person['position'][c][1] - po[np.where(cl == c)[0][0]][1]))
 
 
 
         if (person['counter'][c] > 3) and (abs(person['position'][c][0] - po[np.where(cl == c)[0][0]][0]) >= 0) and (abs(person['position'][c][1]- po[np.where(cl== c)[0][0]][1]) >=0):
             person['trip'][c] = 0
             person['counter'][c] <= 0
-            print('ccc')
-            print(f'c = {c}')
-            print(person['position'][c])  
+            # print('ccc')
+            # print(f'c = {c}')
+            # print(person['position'][c])  
 
 
     # Introducing quarantine.  
