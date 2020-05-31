@@ -8,9 +8,6 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import math
 import hop
-#matplotlib.use("Agg")
-# Writer = animation.writers['ffmpeg']
-# writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
 
 
 #------------------------------------------------------------
@@ -68,7 +65,7 @@ person = np.ones(n, dtype=[('position', float, 2), ('velocity', float, 2),('trip
 #####
 # Global Quarantine Flag## 
 #0 for off, 1 for on
-quarantine = 1
+quarantine = 0
 
 #initialize position, velocity, status, color and facecolor
 
@@ -185,10 +182,8 @@ def update(frame_number):
     person['duration'] = np.where(person['status'] ==0, person['duration']+0.05, person['duration'])
 
 
-
+    ### The section below is for people going back and forth to a central location###
     t1 = (person['trip']==1).sum()
-
-    
     t0 = np.where((person['trip'] == 0))[0]
     # Central Location trip added
     if t1 == 0:
@@ -209,10 +204,8 @@ def update(frame_number):
         for c in cl:
             person['trip'][c] = 1
 
-  
-  
 
-    #hop    
+    #hopping to central location    
 
     for c in cl:
         if person['trip'][c] == 1 and person['counter'][c] <= 3:
@@ -225,31 +218,13 @@ def update(frame_number):
            
 
         if (person['counter'][c] > 3 and ((abs(person['position'][c][0]) < abs(po[np.where(cl == c)[0][0]][0])) or (abs(person['position'][c][1]) < abs(po[np.where(cl == c)[0][0]][1])))):
-            
-            # print('bbb')
-            # print('going in')
-            # print(print(person['position'][c]))
             person['position'][c][0] = hop.hopr(po[np.where(cl == c)[0][0]][0],person['position'][c][0])
             person['position'][c][1] = hop.hopr(po[np.where(cl == c)[0][0]][1],person['position'][c][1])
-
-            # print('coming out')
-            # print(person['position'][c])
-            # print(po[np.where(cl == c)[0][0]][0])
-            # print(po[np.where(cl == c)[0][0]][1])
-            # print(f'counter {c} =')
-            # print(person['counter'][c])
-            # print('diff = ')
-            # print(abs(person['position'][c][0] - po[np.where(cl == c)[0][0]][0]))
-            # print(abs(person['position'][c][1] - po[np.where(cl == c)[0][0]][1]))
-
-
 
         if (person['counter'][c] > 3) and (abs(person['position'][c][0] - po[np.where(cl == c)[0][0]][0]) >= 0) and (abs(person['position'][c][1]- po[np.where(cl== c)[0][0]][1]) >=0):
             person['trip'][c] = 0
             person['counter'][c] <= 0
-            # print('ccc')
-            # print(f'c = {c}')
-            # print(person['position'][c])  
+    ### End of central location visit code block#
 
 
     # Introducing quarantine.  
@@ -270,9 +245,8 @@ def update(frame_number):
             person['position'][i][0] = person['position'][i][0] + stepx
         if (person['position'][i][1] > (-130)):
             person['position'][i][1] = person['position'][i][1] - stepy
-            
 
-    # update size of particles with status = 0
+    # update size of particles based on status
     s = np.where(person['status'] ==0, s+8, s)
     s = np.where(s > 100, 20, s)
     s = np.where(person['status'] ==2, 20, s)
@@ -293,6 +267,9 @@ def update(frame_number):
             person['qtflag'][i] = 0
         else:
             continue
+
+    #### End quarantine code block###
+
 
     #update alpha value as function of size
     person['color'][:, 3] = np.where(person['status'] ==0, (1-(s-20)/80), 1)
@@ -317,8 +294,6 @@ def update(frame_number):
     scat.set_sizes(s)
     text1.set_position((-55,105))
     text1.set_text(f'Day = {day}   Active infections = {active_infections}')
-
-
 
     #Plotting second subplot ax2
     x.append(day1)
