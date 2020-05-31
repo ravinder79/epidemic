@@ -107,6 +107,11 @@ scat = ax1.scatter(person['position'][:,0], person['position'][:,1],
 line1, = ax2.plot(x,y)
 line2, = ax2.plot(x,y1)
 
+
+
+#####################################################################################################
+
+
 #Animation update function
 def update(frame_number):
     
@@ -185,7 +190,7 @@ def update(frame_number):
     ### The section below is for people going back and forth to a central location###
     t1 = (person['trip']==1).sum()
     t0 = np.where((person['trip'] == 0))[0]
-    # Central Location trip added
+
     if t1 == 0:
         cl = np.random.choice(t0, size=5)
         for c in cl:
@@ -211,7 +216,6 @@ def update(frame_number):
         if person['trip'][c] == 1 and person['counter'][c] <= 3:
             person['position'][c][0] = hop.hop(0,  person['position'][c][0])
             person['position'][c][1] = hop.hop(0, person['position'][c][1])
-          
 
         if (abs(person['position'][c][0]) < 5)  and (abs(person['position'][c][1]) < 5):
             person['counter'][c] = person['counter'][c] + 1 
@@ -314,6 +318,10 @@ def update(frame_number):
     text3.set_text(f'Total Quarantined = {quarantined}')
     
     return scat,line1, p, p1, p2
+### End of 'update' function
+
+
+
 
 
 # Construct the animation, using the update function as the animation
