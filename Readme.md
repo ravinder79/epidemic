@@ -9,3 +9,5 @@
 ### epidemic_window_qt.py: Simulation will quarantine scenario added
 
 ### epidemic_window_qt_c.py: Simulation where ppl visit a central location (quarantine/social isolation optional)
+
+![](Epidemic.gif)
