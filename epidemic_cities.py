@@ -22,7 +22,7 @@ fig = plt.figure(figsize=(14, 6))
 plt.rcParams['figure.facecolor'] = 'black'
 gs1 = fig.add_gridspec(nrows=8, ncols=8)
 ax1 = fig.add_subplot((gs1[:, 0:6]), aspect='equal')
-#ax1.axis('off')
+ax1.axis('off')
 
 ax2 = fig.add_subplot(gs1[1:7, 5:8])
 
@@ -46,10 +46,13 @@ bounds_9 = [40, 100, 40, 100]
 # bounds = [-100, 100, -100, 100]
 boundaries = pd.concat([pd.DataFrame(bounds_1),pd.DataFrame(bounds_2),pd.DataFrame(bounds_3),
             pd.DataFrame(bounds_4),pd.DataFrame(bounds_5),pd.DataFrame(bounds_6),
-                pd.DataFrame(bounds_7),pd.DataFrame(bounds_8),pd.DataFrame(bounds_9)], axis =1) 
+                pd.DataFrame(bounds_7),pd.DataFrame(bounds_8),pd.DataFrame(bounds_9), pd.DataFrame(bounds)], axis =1) 
+boundaries.columns = ['bounds_1', 'bounds_2', 'bounds_3', 'bounds_4', 'bounds_5', 'bounds_6', 'bounds_7', 'bounds_8', 'bounds_9', 'bounds']
 
-boundaries.columns = ['bounds_1', 'bounds_2', 'bounds_3', 'bounds_4', 'bounds_5', 'bounds_6', 'bounds_7', 'bounds_8', 'bounds_9']
-print(boundaries)
+center = pd.DataFrame([[ -70, -70], [0, -70], [70, -70], [-70, 0], [0,0], [70, 0],[-70, 70],[0, 70],[70, 70]]) 
+center.columns = ['x','y']
+
+
 #central location bounds
 cbounds = [-4, 4, -4, 4]
 
@@ -113,14 +116,14 @@ rect1 = plt.Rectangle(bounds3[::2],
 ax1.add_patch(rect1)
 
 for i in range(9):
-    n = 200
+    n = 300
     person = np.ones(n, dtype=[('position', float, 2), ('velocity', float, 2),('trip', int, 1),('status', int, 1),('counter', int, 1),
              ('qtflag', int, 1), ('box', int, 1),('duration', float, 1),('size',    float, 1),('color',    float, 4), ('facecolor',    float, 4)])
 
-for i in range(200):
+for i in range(n):
     person['box'][i] = np.random.choice([1,2,3,4,6,7,8,9])
 
-for j in range(0,200):
+for j in range(0,n):
     b = person['box'][j]
     offset = 5
     person['position'][j][0] = np.random.uniform((boundaries.iloc[0, b-1]+offset),(boundaries.iloc[1, b-1]-offset),size = (1, 1))[0][0]
@@ -134,7 +137,7 @@ for j in range(0,200):
 #####
 # Global Quarantine Flag## 
 #0 for off, 1 for on
-quarantine = 0
+quarantine = 1
 
 #initialize position, velocity, status, color and facecolor
 
@@ -188,9 +191,8 @@ def update(frame_number):
     
     day = int(frame_number/20)
     day1= frame_number/20
-    #print(day1)
     dt = 1 / 30 # 30fps
-    infection_radius = 1.0
+    infection_radius = 2.0
     social_distancing = 0.0
 
     # update location
@@ -207,20 +209,29 @@ def update(frame_number):
     crossed_y = []
 
     for i in range(0,n):
-        b = person['box'][i]
-        crossed_x1 = (person['position'][i][0] < boundaries.iloc[0,b-1] + person[i]['size']+1) & (person[i]['qtflag'] != 2)
-        crossed_x2 = (person['position'][i][0] > boundaries.iloc[1,b-1] - person[i]['size']-1) & (person[i]['qtflag'] != 2)
-        crossed_y1 = (person['position'][i][1] < boundaries.iloc[2,b-1] + person[i]['size']+1) & (person[i]['qtflag'] != 2)
-        crossed_y2 = (person['position'][i][1] > boundaries.iloc[3,b-1] - person[i]['size']-1) & (person[i]['qtflag'] != 2)       
-            
-        crossed_x.append(crossed_x1 | crossed_x2 )
-        crossed_y.append(crossed_y2 | crossed_y1)
+        if person['trip'][i] == 0:
+            b = person['box'][i]
+            crossed_x1 = (person['position'][i][0] < boundaries.iloc[0,b-1] + person[i]['size']+1) & (person[i]['qtflag'] != 2)
+            crossed_x2 = (person['position'][i][0] > boundaries.iloc[1,b-1] - person[i]['size']-1) & (person[i]['qtflag'] != 2)
+            crossed_y1 = (person['position'][i][1] < boundaries.iloc[2,b-1] + person[i]['size']+1) & (person[i]['qtflag'] != 2)
+            crossed_y2 = (person['position'][i][1] > boundaries.iloc[3,b-1] - person[i]['size']-1) & (person[i]['qtflag'] != 2)       
+                
+            crossed_x.append(crossed_x1 | crossed_x2 )
+            crossed_y.append(crossed_y2 | crossed_y1)
+        
+        if person['trip'][i] == 1:
+
+            crossed_x1 = (person['position'][i][0] < boundaries.iloc[0,9] + person[i]['size']+1) & (person[i]['qtflag'] != 2)
+            crossed_x2 = (person['position'][i][0] > boundaries.iloc[1,9] - person[i]['size']-1) & (person[i]['qtflag'] != 2)
+            crossed_y1 = (person['position'][i][1] < boundaries.iloc[2,9] + person[i]['size']+1) & (person[i]['qtflag'] != 2)
+            crossed_y2 = (person['position'][i][1] > boundaries.iloc[3,9] - person[i]['size']-1) & (person[i]['qtflag'] != 2)  
+        
+            crossed_x.append(crossed_x1 | crossed_x2 )
+            crossed_y.append(crossed_y2 | crossed_y1)
           
     # Update velocity of persons which crossed boundries
     person['velocity'][crossed_x, 0] *= -1
     person['velocity'][crossed_y, 1] *= -1
-
-
 
 
     # find pairs of person undergoing a interaction and update health status, facecolor,
@@ -232,7 +243,7 @@ def update(frame_number):
 
     # update status, edgecolor and facecolor of interacting persons
     for i1, i2 in zip(ind1, ind2):
-        if (person['status'][i1] == person['status'][i2]) & (person['position'][i1][1] < -105):
+        if (person['status'][i1] == person['status'][i2]) & (person['position'][i1][1] < -105) or ((person['qtflag'][i2] ==2) or (person['qtflag'][i1] ==2)):
             continue 
         elif person['status'][i1] == 0:
             person['status'][i2] = np.random.choice([0,1],p =[1-social_distancing, social_distancing])
@@ -265,51 +276,70 @@ def update(frame_number):
     person['duration'] = np.where(person['status'] ==0, person['duration']+0.05, person['duration'])
 
 
-    ### The section below is for people going back and forth to a central location###
-    # t1 = (person['trip']==1).sum()
-    # t0 = np.where((person['trip'] == 0))[0]
-
-    # if t1 == 0:
-    #     cl = np.random.choice(t0, size=5)
-    #     for c in cl:
-    #         person['trip'][c] = 1
-    #     po = person['position'][cl]
+    # The section below is for people going back and forth to a central location###
+    t1 = (person['trip']==1).sum()
+    t0 = np.where((person['trip'] == 0))[0]
+  
+    if t1 == 0:
+        cl = np.random.choice(t0, size=12)
+        for c in cl:
+            person['trip'][c] = 1
+        po = person['position'][cl]
     
-    # t1 = (person['trip']==1).sum()
+    t1 = (person['trip']==1).sum()
+   
+    if t1 < 12:
+        xs = np.where(person['trip'][cl] == 0)[0]
+        for i in xs:
+            list1 = np.where(person['trip']==0)[0]
+            cl[i] = np.random.choice(list1, 1)
+            
+        for c in cl:
+            person['trip'][c] = 1
+  
+    #hopping to central location    
+    po = [0,0]
+    for c in cl:
+        
+        po[0] = center.iloc[person['box'][c]-1,0]
+        po[1] = center.iloc[person['box'][c]-1,1]
 
-    # if t1 < 5:
-    #     xs = np.where(person['trip'][cl] == 0)[0]
-       
-    #     for i in xs:
-    #         list1 = np.where(person['trip']==0)[0]
-    #         cl[i] = np.random.choice(list1, 1)
-    #         po[i] = person['position'][cl[i]]
-    #     for c in cl:
-    #         person['trip'][c] = 1
+        if person['trip'][c] == 1 and person['counter'][c] <= 5:
+            person['position'][c][0] = hop.hop(0,  person['position'][c][0])
+            person['position'][c][1] = hop.hop(0, person['position'][c][1])
 
-
-    # #hopping to central location    
-
-    # for c in cl:
-    #     if person['trip'][c] == 1 and person['counter'][c] <= 3:
-    #         person['position'][c][0] = hop.hop(0,  person['position'][c][0])
-    #         person['position'][c][1] = hop.hop(0, person['position'][c][1])
-
-    #     if (abs(person['position'][c][0]) < 5)  and (abs(person['position'][c][1]) < 5):
-    #         person['counter'][c] = person['counter'][c] + 1 
+        if (abs(person['position'][c][0]) < 5)  and (abs(person['position'][c][1]) <= 5):
+            person['counter'][c] = person['counter'][c] + 1 
            
+        if person['box'][c]%2 !=0:
+            if (person['counter'][c] > 5 and ((abs(person['position'][c][0]) < abs(po[0])) or (abs(person['position'][c][1]) < abs(po[1])))):
+                person['position'][c][0] = hop.hopr(po[0],person['position'][c][0])
+                person['position'][c][1] = hop.hopr(po[1],person['position'][c][1])
 
-    #     if (person['counter'][c] > 3 and ((abs(person['position'][c][0]) < abs(po[np.where(cl == c)[0][0]][0])) or (abs(person['position'][c][1]) < abs(po[np.where(cl == c)[0][0]][1])))):
-    #         person['position'][c][0] = hop.hopr(po[np.where(cl == c)[0][0]][0],person['position'][c][0])
-    #         person['position'][c][1] = hop.hopr(po[np.where(cl == c)[0][0]][1],person['position'][c][1])
+            if (person['counter'][c] > 5) and ((abs(person['position'][c][0]) - abs(po[0]) >= 0) or (abs(person['position'][c][1]) - abs(po[1]) >= 0)):
+                person['trip'][c] = 0
+                person['counter'][c] = 0
+        
+        if ((person['box'][c] == 2) or (person['box'][c] == 8)):
+            if ((person['counter'][c]) > 5 and (abs(person['position'][c][1]) < abs(po[1]))):
+                person['position'][c][1] = hop.hopr(po[1],person['position'][c][1])
+            
+            if (person['counter'][c] > 5) and (abs(person['position'][c][1])- abs(po[1]) >=0):
+                person['trip'][c] = 0
+                person['counter'][c] = 0
+            
 
-    #     if (person['counter'][c] > 3) and (abs(person['position'][c][0] - po[np.where(cl == c)[0][0]][0]) >= 0) and (abs(person['position'][c][1]- po[np.where(cl== c)[0][0]][1]) >=0):
-    #         person['trip'][c] = 0
-    #         person['counter'][c] <= 0
-    ### End of central location visit code block#
+        if ((person['box'][c] == 4) or (person['box'][c] == 6)):
+            if (person['counter'][c] > 5 and (abs(person['position'][c][0]) < abs(po[0]))):
+                person['position'][c][0] = hop.hopr(po[0],person['position'][c][0])
 
+            if (person['counter'][c] > 5) and (abs(person['position'][c][0]) - abs(po[0]) >= 0):
+                person['trip'][c] = 0
+                person['counter'][c] = 0
 
-    # Introducing quarantine.  
+    # End of central location visit code block#
+
+    # quarantine code.  
     stepx = 15
     stepy = 15
     for i in range(len((person['qtflag'] == 1) & (person['position'][:,1] >= -100) & (person['duration'] > 1))):
@@ -366,7 +396,10 @@ def update(frame_number):
     person['facecolor'][:, 1] = np.where(person['status'] == 2, 0.5,person['facecolor'][:, 1])
     person['facecolor'][:, 0] = np.where(person['status'] == 2, 0.5,person['facecolor'][:, 0])
    
-    
+    # yellow = np.where((person['trip'] ==1))
+    # for yellow in yellow:
+    #     person['facecolor'][yellow] = [1,1,0,1]
+
     # use set function to change color and sizes
     #rect.set_edgecolor('k')
     rect_1.set_edgecolor('k')
