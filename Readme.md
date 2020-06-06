@@ -1,5 +1,5 @@
 
-#Disclaimer: This is my dabblings with simulating various scenarios for a epidemic. These are just toy models and I don't claim that they represent the real world epidemics. But these simulations can provide high level insights into effect of social distancing, quarantince and travel on spread of an epidemic.
+#Disclaimer: This is my dabblings with simulating various scenarios for a epidemic. These are just toy models and I don't claim that they represent the real world epidemics. But these simulations can provide high level insights into effect of social distancing, quarantine and travel on spread of an epidemic.
 
 
 # Simulation of epidemics/pandemics
