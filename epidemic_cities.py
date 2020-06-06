@@ -332,8 +332,8 @@ def update(frame_number):
     # quarantine code.  
     stepx = 15
     stepy = 15
-    for i in range(len((person['qtflag'] == 1) & (person['position'][:,1] >= -100) & (person['duration'] > 1))):
-        if ((person['qtflag'][i] == 1) & (person['position'][i][1] >= -100) & (infected_pcnt+recovered_pcnt > 10) & (person['duration'][i] > 1)):
+    for i in range(len((person['qtflag'] == 1) & (person['position'][:,1] >= -100) & (person['duration'] > 1) & (person['trip'] ==0))):
+        if ((person['qtflag'][i] == 1) & (person['position'][i][1] >= -100) & (infected_pcnt+recovered_pcnt > 10) & (person['duration'][i] > 1) & (person['trip'][i] ==0)):
             person['qtflag'][i] = 2       
 
     ls = np.where((person['qtflag'] ==2) & (person['status'] == 0))
@@ -355,8 +355,8 @@ def update(frame_number):
     s = np.where(person['qtflag'] ==1, 20, s)
 
     
-    # Update status of person when infection duration > 21 days
-    person['status'] = np.where(person['duration'] > 21, 2, person['status'])
+    # Update status of person when infection duration > 15 days
+    person['status'] = np.where(person['duration'] > 15, 2, person['status'])
 
     # return of quarantined persons who have recovered after 21 days
     lsq = np.where((person['qtflag'] ==2) & (person['status'] == 2))
