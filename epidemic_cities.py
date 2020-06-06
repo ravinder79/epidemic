@@ -89,17 +89,7 @@ ax1.add_patch(rect_9)
 
 rect_8 = hop.rect(bounds_8)
 ax1.add_patch(rect_8)
-# rect = plt.Rectangle(bounds[::2],
-#                      bounds[1] - bounds[0],
-#                      bounds[3] - bounds[2],
-#                      ec='none', lw=2, fc='none')
-# ax1.add_patch(rect)
 
-# rect_1 = plt.Rectangle(bounds1[::2],
-#                      bounds1[1] - bounds1[0],
-#                      bounds1[3] - bounds1[2],
-#                      ec='none', lw=2, fc='none')
-# ax1.add_patch(rect_1)
 
 # center patch
 rectc = plt.Rectangle(cbounds[::2],
@@ -433,11 +423,11 @@ def update(frame_number):
     line2.set_data(x,y1)
     ax2.set_ylim(ymin=0, top = 100)
     ax2.set_xlim([0, day1])
-    text2.set_position((200, 115))
+    text2.set_position((200, 90))
     text2.set_text(f'Infected = {infected_pcnt}%   Removed/Recovered = {recovered_pcnt}%')
     text3.set_position((-50,-160))
     text3.set_text(f'Total Quarantined = {quarantined}')
-    
+
     return scat,line1, p, p1, p2
 ### End of 'update' function
 
