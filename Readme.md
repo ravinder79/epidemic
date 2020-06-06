@@ -10,4 +10,6 @@
 
 ### epidemic_window_qt_c.py: Simulation where ppl visit a central location (quarantine/social isolation optional)
 
+### epidemic_cities.py: Simulation with travel between cities
+
 ![](Epidemic.gif)
