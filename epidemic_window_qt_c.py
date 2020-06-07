@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import math
 import hop
+plt.style.use('dark_background')
 
 
 #------------------------------------------------------------
@@ -21,9 +22,10 @@ fig = plt.figure(figsize=(14, 6))
 plt.rcParams['figure.facecolor'] = 'black'
 gs1 = fig.add_gridspec(nrows=6, ncols=6)
 ax1 = fig.add_subplot((gs1[:, 0:4]), aspect='equal')
-#ax1.axis('off')
+ax1.axis('off')
 
 ax2 = fig.add_subplot(gs1[1:5, 4:6])
+ax2.set_facecolor('gray')
 
 
 # This helps in getting rid of margins on side of axes. Default is 5%
@@ -65,7 +67,7 @@ person = np.ones(n, dtype=[('position', float, 2), ('velocity', float, 2),('trip
 #####
 # Global Quarantine Flag## 
 #0 for off, 1 for on
-quarantine = 0
+quarantine = 1
 
 #initialize position, velocity, status, color and facecolor
 
@@ -122,7 +124,6 @@ def update(frame_number):
     
     day = int(frame_number/20)
     day1= frame_number/20
-    #print(day1)
     dt = 1 / 30 # 30fps
     infection_radius = 2.0
     social_distancing = 0.0
@@ -190,7 +191,7 @@ def update(frame_number):
     ### The section below is for people going back and forth to a central location###
     t1 = (person['trip']==1).sum()
     t0 = np.where((person['trip'] == 0))[0]
-
+   
     if t1 == 0:
         cl = np.random.choice(t0, size=5)
         for c in cl:
@@ -208,7 +209,7 @@ def update(frame_number):
             po[i] = person['position'][cl[i]]
         for c in cl:
             person['trip'][c] = 1
-
+    
 
     #hopping to central location    
 
@@ -225,11 +226,10 @@ def update(frame_number):
             person['position'][c][0] = hop.hopr(po[np.where(cl == c)[0][0]][0],person['position'][c][0])
             person['position'][c][1] = hop.hopr(po[np.where(cl == c)[0][0]][1],person['position'][c][1])
 
-        if (person['counter'][c] > 3) and (abs(person['position'][c][0] - po[np.where(cl == c)[0][0]][0]) >= 0) and (abs(person['position'][c][1]- po[np.where(cl== c)[0][0]][1]) >=0):
+        if (person['counter'][c] > 3) and (abs(person['position'][c][0]) - abs(po[np.where(cl == c)[0][0]][0]) >= 0) and (abs(person['position'][c][1])- abs(po[np.where(cl== c)[0][0]][1]) >=0):
             person['trip'][c] = 0
-            person['counter'][c] <= 0
+            person['counter'][c] = 0
     ### End of central location visit code block#
-
 
     # Introducing quarantine.  
     stepx = 15
@@ -290,8 +290,8 @@ def update(frame_number):
    
     
     # use set function to change color and sizes
-    rect.set_edgecolor('k')
-    rectc.set_edgecolor('r')
+    rect.set_edgecolor('w')
+    rectc.set_edgecolor('w')
     rect1.set_edgecolor('r')
     scat.set_facecolor(person['facecolor'])
     scat.set_edgecolors(person['color'])
