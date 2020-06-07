@@ -5,17 +5,20 @@ import numpy as np
 import matplotlib.animation as animation
 from scipy.spatial.distance import pdist, squareform
 import matplotlib.pyplot as plt
+import csv
+import pandas as pd
+plt.style.use('dark_background')
 
 
 #------------------------------------------------------------
 global day, s, x,y, day1, y1
 #create a figure object and axes
 fig = plt.figure(figsize=(14, 6))
-
 ax1 = fig.add_subplot(121, aspect='equal')
 ax1.axis('off')
-
 ax2 = fig.add_subplot(122)
+ax2.set_facecolor('gray')
+
 
 # This helps in getting rid of margins on side of axes. Default is 5%
 plt.rcParams['axes.xmargin'] = 0
@@ -28,6 +31,7 @@ rect = plt.Rectangle(bounds[::2],
                      bounds[1] - bounds[0],
                      bounds[3] - bounds[2],
                      ec='none', lw=2, fc='none')
+
 ax1.add_patch(rect)
 
 
@@ -38,8 +42,8 @@ person = np.ones(n, dtype=[('position', float, 2), ('velocity', float, 2),
 
 #initialize position, velocity, status, color and facecolor
 
-person['position'] = np.random.uniform(-40,40, size = (n, 2))
-person['velocity'] = (-0.5 + np.random.random((n, 2))) * 75
+person['position'] = np.random.uniform(-60,60, size = (n, 2))
+person['velocity'] = (-0.5 + np.random.random((n, 2))) * 80
 person['color'] = np.zeros((n,4))
 person['color'][:,1] = 0.5
 person['color'][0] = [1.0, 0.0, 0.0, 1.0]
@@ -64,18 +68,20 @@ text1 = ax1.text(-10,42,'')
 text2 = ax1.text(-10,100, '')
 
 #create a scatter plot
-scat = ax1.scatter(person['position'][:,0], person['position'][:,1],
-        lw=0.5, s = s, label = 'day', edgecolors= person['color'],facecolors=person['facecolor'])
+with plt.style.context('dark_background'):
+    scat = ax1.scatter(person['position'][:,0], person['position'][:,1],
+            lw=0.5, s = s, label = 'day', edgecolors= person['color'],facecolors=person['facecolor'])
 
-#scat1, = ax2.plot(x,y,marker='o',color="r")
 
+data = pd.DataFrame(columns=['day', 'infected', 'recovered'])
+data = data.fillna(0) 
 
 #Animation update function
 def update(frame_number):
     
     current_index = frame_number % n
 
-    global categories, rect, dt, ax, fig, colormap, legend, s
+    global categories, rect, dt, ax, fig, colormap, legend, s, data
     
     
     day = int(frame_number/20)
@@ -83,8 +89,8 @@ def update(frame_number):
     day1= frame_number/20
     #print(day1)
     dt = 1 / 30 # 30fps
-    infection_radius = 2.0
-    social_distancing = 0.0
+    infection_radius = 1.5
+    social_distancing = 0.1
 
     # update location
     person['position'] += dt * person['velocity']
@@ -92,10 +98,10 @@ def update(frame_number):
     
     # check for crossing boundary
    
-    crossed_x1 = person['position'][:, 0] < bounds[0] + person['size']
-    crossed_x2 = person['position'][:, 0] > bounds[1] - person['size']
-    crossed_y1 = person['position'][:, 1] < bounds[2] + person['size']
-    crossed_y2 = person['position'][:, 1] > bounds[3] - person['size']
+    crossed_x1 = person['position'][:, 0] < bounds[0] + person['size'] + 3
+    crossed_x2 = person['position'][:, 0] > bounds[1] - person['size'] - 3
+    crossed_y1 = person['position'][:, 1] < bounds[2] + person['size'] + 3
+    crossed_y2 = person['position'][:, 1] > bounds[3] - person['size'] - 3
 
     # find pairs of person undergoing a interaction and update health status, facecolor,
     D = squareform(pdist(person['position']))
@@ -139,7 +145,7 @@ def update(frame_number):
     person['duration'] = np.where(person['status'] ==0, person['duration']+0.05, person['duration'])
     
     # Update status of person when infection duration > 15 days
-    person['status'] = np.where(person['duration'] > 21, 2, person['status'])
+    person['status'] = np.where(person['duration'] > 15, 2, person['status'])
 
     #update alpha value as function of size
     person['color'][:, 3] = np.where(person['status'] ==0, (1-(s-20)/80), 1)
@@ -160,7 +166,8 @@ def update(frame_number):
     person['velocity'][crossed_y1 | crossed_y2, 1] *= -1
     
     # use set function to change color and sizes
-    rect.set_edgecolor('k')
+    rect.set_edgecolor('w')
+
     scat.set_facecolor(person['facecolor'])
     scat.set_edgecolors(person['color'])
     scat.set_sizes(s)
@@ -182,13 +189,21 @@ def update(frame_number):
     ax2.fill_between(x, y, y1,color='teal', alpha='0.5')
     text2.set_position((200, 115))
     text2.set_text(f'Infected = {infected_pcnt}%   Removed/Recovered = {recovered_pcnt}%')
+    
+    dict = {'day': day, 'infected': infected_pcnt, 'recovered': recovered_pcnt}
+    data = data.append(dict,ignore_index = True)
+    if frame_number == 1100:
+        data.to_csv('data.csv')
 
     return scat,
 
 
 # Construct the animation, using the update function as the animation
 # director.
-animation = animation.FuncAnimation(fig, update, interval=10)
+animation = animation.FuncAnimation(fig, update, interval=10, frames = 1100)
+#save command below
+
+#animation.save('im.mp4', fps = 15.0, dpi=600 )
 
 plt.show()
 

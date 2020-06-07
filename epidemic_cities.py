@@ -9,6 +9,7 @@ import matplotlib.gridspec as gridspec
 import math
 import hop
 import pandas as pd
+plt.style.use('dark_background')
 
 #------------------------------------------------------------
 global day, s, x,y, day1, y1
@@ -25,6 +26,7 @@ ax1 = fig.add_subplot((gs1[:, 0:6]), aspect='equal')
 ax1.axis('off')
 
 ax2 = fig.add_subplot(gs1[1:7, 5:8])
+ax2.set_facecolor('gray')
 
 
 # This helps in getting rid of margins on side of axes. Default is 5%
@@ -127,7 +129,7 @@ for j in range(0,n):
 #####
 # Global Quarantine Flag## 
 #0 for off, 1 for on
-quarantine = 1
+quarantine = 0
 
 #initialize position, velocity, status, color and facecolor
 
@@ -392,17 +394,17 @@ def update(frame_number):
 
     # use set function to change color and sizes
     #rect.set_edgecolor('k')
-    rect_1.set_edgecolor('k')
-    rect_2.set_edgecolor('k')
-    rect_3.set_edgecolor('k')
-    rect_4.set_edgecolor('k')
-    rect_5.set_edgecolor('k')
-    rect_6.set_edgecolor('k')
-    rect_7.set_edgecolor('k')
-    rect_8.set_edgecolor('k')
-    rect_9.set_edgecolor('k')
+    rect_1.set_edgecolor('w')
+    rect_2.set_edgecolor('w')
+    rect_3.set_edgecolor('w')
+    rect_4.set_edgecolor('w')
+    rect_5.set_edgecolor('w')
+    rect_6.set_edgecolor('w')
+    rect_7.set_edgecolor('w')
+    rect_8.set_edgecolor('w')
+    rect_9.set_edgecolor('w')
 
-    rectc.set_edgecolor('r')
+    rectc.set_edgecolor('w')
     rect1.set_edgecolor('r')
     scat.set_facecolor(person['facecolor'])
     scat.set_edgecolors(person['color'])
