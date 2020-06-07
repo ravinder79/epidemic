@@ -7,9 +7,8 @@ from scipy.spatial.distance import pdist, squareform
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import math
-#matplotlib.use("Agg")
-# Writer = animation.writers['ffmpeg']
-# writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
+plt.style.use('dark_background')
+
 
 
 #------------------------------------------------------------
@@ -25,7 +24,9 @@ gs1 = fig.add_gridspec(nrows=6, ncols=6)
 ax1 = fig.add_subplot((gs1[:, 0:4]), aspect='equal')
 ax1.axis('off')
 
+
 ax2 = fig.add_subplot(gs1[1:5, 4:6])
+ax2.set_facecolor('gray')
 
 
 # This helps in getting rid of margins on side of axes. Default is 5%
@@ -229,8 +230,8 @@ def update(frame_number):
    
     
     # use set function to change color and sizes
-    rect.set_edgecolor('k')
-    rect1.set_edgecolor('k')
+    rect.set_edgecolor('w')
+    rect1.set_edgecolor('r')
     scat.set_facecolor(person['facecolor'])
     scat.set_edgecolors(person['color'])
     scat.set_sizes(s)
