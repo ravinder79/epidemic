@@ -108,7 +108,7 @@ rect1 = plt.Rectangle(bounds3[::2],
 ax1.add_patch(rect1)
 
 for i in range(9):
-    n = 300
+    n = 500
     person = np.ones(n, dtype=[('position', float, 2), ('velocity', float, 2),('trip', int, 1),('status', int, 1),('counter', int, 1),
              ('qtflag', int, 1), ('box', int, 1),('duration', float, 1),('size',    float, 1),('color',    float, 4), ('facecolor',    float, 4)])
 
@@ -129,7 +129,7 @@ for j in range(0,n):
 #####
 # Global Quarantine Flag## 
 #0 for off, 1 for on
-quarantine = 0
+quarantine = 1
 
 #initialize position, velocity, status, color and facecolor
 
@@ -156,7 +156,7 @@ day1 = 0.00
 x = [0]
 y= [0]
 y1 = [100]
-s= np.ones((n)) * 8
+s= np.ones((n)) * 3
 text1 = ax1.text(-10,42,'')
 text2 = ax1.text(-10,100, '')
 text3 = ax1.text(-10,42,'')
@@ -184,7 +184,7 @@ def update(frame_number):
     day = int(frame_number/20)
     day1= frame_number/20
     dt = 1 / 30 # 30fps
-    infection_radius = 2.0
+    infection_radius = 0.8
     social_distancing = 0.0
 
     # update location
@@ -251,7 +251,7 @@ def update(frame_number):
                 person['color'][i1][0] = 1
                 person['color'][i1][1] = 0
                 person['facecolor'][i1] = [1,0,0,0.6]
-                person['qtflag'][i1] = np.random.choice([0,1],p = [0.1, 0.9])  # quarantine flag
+                person['qtflag'][i1] = np.random.choice([0,1],p = [0.5, 0.5])  # quarantine flag
 
     # Used to turn on/off quarantine
     if quarantine == 0:
@@ -293,41 +293,49 @@ def update(frame_number):
     po = [0,0]
     for c in cl:
         
-        po[0] = center.iloc[person['box'][c]-1,0]
-        po[1] = center.iloc[person['box'][c]-1,1]
+        po[0] = center.iloc[10-person['box'][c]-1,0]
+        po[1] = center.iloc[10-person['box'][c]-1,1]
 
         if person['trip'][c] == 1 and person['counter'][c] <= 5:
-            person['position'][c][0] = hop.hop(0,  person['position'][c][0])
-            person['position'][c][1] = hop.hop(0, person['position'][c][1])
+            # person['position'][c][0] = hop.hop(0,  person['position'][c][0])
+            # person['position'][c][1] = hop.hop(0, person['position'][c][1])
+            person['position'][c][0],person['position'][c][1]  = hop.linehop(0,0, person['position'][c][0],person['position'][c][1])
+
 
         if (abs(person['position'][c][0]) < 5)  and (abs(person['position'][c][1]) <= 5):
             person['counter'][c] = person['counter'][c] + 1 
            
         if person['box'][c]%2 !=0:
-            if (person['counter'][c] > 5 and ((abs(person['position'][c][0]) < abs(po[0])) or (abs(person['position'][c][1]) < abs(po[1])))):
+            if (person['counter'][c] > 8 and ((abs(person['position'][c][0]) < abs(po[0])) or (abs(person['position'][c][1]) < abs(po[1])))):
                 person['position'][c][0] = hop.hopr(po[0],person['position'][c][0])
                 person['position'][c][1] = hop.hopr(po[1],person['position'][c][1])
 
-            if (person['counter'][c] > 5) and ((abs(person['position'][c][0]) - abs(po[0]) >= 0) or (abs(person['position'][c][1]) - abs(po[1]) >= 0)):
+            if (person['counter'][c] > 8) and ((abs(person['position'][c][0]) - abs(po[0]) >= 0) or (abs(person['position'][c][1]) - abs(po[1]) >= 0)):
                 person['trip'][c] = 0
                 person['counter'][c] = 0
+                person['box'][c] = 10-person['box'][c]
         
         if ((person['box'][c] == 2) or (person['box'][c] == 8)):
-            if ((person['counter'][c]) > 5 and (abs(person['position'][c][1]) < abs(po[1]))):
+            # po[0] = center.iloc[person['box'][c],0]
+            # po[1] = center.iloc[person['box'][c],1]
+            if ((person['counter'][c]) > 8 and (abs(person['position'][c][1]) < abs(po[1]))):
                 person['position'][c][1] = hop.hopr(po[1],person['position'][c][1])
             
-            if (person['counter'][c] > 5) and (abs(person['position'][c][1])- abs(po[1]) >=0):
+            if (person['counter'][c] > 8) and (abs(person['position'][c][1])- abs(po[1]) >=0):
                 person['trip'][c] = 0
                 person['counter'][c] = 0
+                person['box'][c] = 10-person['box'][c]
             
 
         if ((person['box'][c] == 4) or (person['box'][c] == 6)):
-            if (person['counter'][c] > 5 and (abs(person['position'][c][0]) < abs(po[0]))):
+            
+            if (person['counter'][c] > 8 and (abs(person['position'][c][0]) < abs(po[0]))):
                 person['position'][c][0] = hop.hopr(po[0],person['position'][c][0])
 
-            if (person['counter'][c] > 5) and (abs(person['position'][c][0]) - abs(po[0]) >= 0):
+            if (person['counter'][c] > 8) and (abs(person['position'][c][0]) - abs(po[0]) >= 0):
                 person['trip'][c] = 0
                 person['counter'][c] = 0
+                person['box'][c] = 10-person['box'][c]
 
     # End of central location visit code block#
 
@@ -350,12 +358,6 @@ def update(frame_number):
         if (person['position'][i][1] > (-130)):
             person['position'][i][1] = person['position'][i][1] - stepy
 
-    # update size of particles based on status
-    s = np.where(person['status'] ==0, s+8, s)
-    s = np.where(s > 40, 8, s)
-    s = np.where(person['status'] ==2, 20, s)
-    s = np.where(person['qtflag'] ==1, 20, s)
-
     
     # Update status of person when infection duration > 15 days
     person['status'] = np.where(person['duration'] > 15, 2, person['status'])
@@ -365,18 +367,36 @@ def update(frame_number):
     lsq = lsq[0]
 
     for i in lsq:   
-        if (person['position'][i][1] < (-100.5)):
-            person['position'][i][1] = person['position'][i][1] + 25                  
-        if (person['position'][i][1] >= -100.5):
+        # if (person['position'][i][1] < (-100.5)):
+        #     person['position'][i][1] = person['position'][i][1] + 25                  
+        # if (person['position'][i][1] >= -100.5):
+        #     person['qtflag'][i] = 0
+        # else:
+        #     continue
+        # print('------')
+        # print(i)
+        # print(person['box'][i])
+        
+        po[0] = center.iloc[person['box'][i]-1,0]
+        po[1] = center.iloc[person['box'][i]-1,1]
+        # print([po])
+        # print(person['position'][i])
+        if (person['position'][i][1]) < po[1]:
+            person['position'][i][0],person['position'][i][1]  = hop.linehop_q(po[0],po[1], person['position'][i][0],person['position'][i][1])
+            # print(person['position'][i])
+        if (person['position'][i][1]) >= po[1]:
             person['qtflag'][i] = 0
-        else:
-            continue
-
     #### End quarantine code block###
+
+    # update size of particles based on status
+    s = np.where(person['status'] ==0, s+4, s)
+    s = np.where(s > 20, 3, s)
+    s = np.where(person['status'] ==2, 8, s)
+    s = np.where(person['qtflag'] ==1, 8, s)
 
 
     #update alpha value as function of size
-    person['color'][:, 3] = np.where(person['status'] == 0, (1-(s-8)/32), 1)
+    person['color'][:, 3] = np.where(person['status'] == 0, (1-(s-3)/17), 1)
    
     #changing edgecolor of persons with status =2 (recovered/removed)
     person['color'][:, 2] = np.where(person['status'] == 2, 0.5, person['color'][:, 2])
