@@ -436,31 +436,6 @@ for sim in range(10):
 
         #### End quarantine code block###
 
-        # update size of particles based on status
-        s = np.where(person["status"] == 0, s + 4, s)
-        s = np.where(s > 20, 3, s)
-        s = np.where(person["status"] == 2, 8, s)
-        s = np.where(person["qtflag"] == 1, 8, s)
-
-        # update alpha value as function of size
-        person["color"][:, 3] = np.where(person["status"] == 0, (1 - (s - 3) / 17), 1)
-
-        # changing edgecolor of persons with status =2 (recovered/removed)
-        person["color"][:, 2] = np.where(person["status"] == 2, 0.5, person["color"][:, 2])
-        person["color"][:, 1] = np.where(person["status"] == 2, 0.5, person["color"][:, 1])
-        person["color"][:, 0] = np.where(person["status"] == 2, 0.5, person["color"][:, 0])
-
-        # changing color of persons with status =2 (recovered/removed)
-        person["facecolor"][:, 2] = np.where(
-            person["status"] == 2, 0.5, person["facecolor"][:, 2]
-        )
-        person["facecolor"][:, 1] = np.where(
-            person["status"] == 2, 0.5, person["facecolor"][:, 1]
-        )
-        person["facecolor"][:, 0] = np.where(
-            person["status"] == 2, 0.5, person["facecolor"][:, 0]
-        )
-
         #### Appending data to a  dict and saving as csv
         dict = {"sim" : sim, "day": day, "infected": infected_pcnt, "quarantined": quarantined, "recovered": recovered_pcnt, 'total_infections' : total_infections_pct, 'q': q, 'ir': infection_radius, 'sd':social_distancing}
         data = data.append(dict, ignore_index=True)
