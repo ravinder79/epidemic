@@ -18,6 +18,21 @@ day = 0
 day1 = 0
 t = 0
 
+
+##### Settings###
+# Global Quarantine Flag: 0 for off, 1 for on
+quarantine = 1
+
+# quarantine probability
+q = 1.0
+
+# Infection radius:
+infection_radius = 0.7
+
+# Social distancing factor: 0- no social distancing, 1: complete distancing
+social_distancing = 0.0
+
+
 # create a figure object and axes
 fig = plt.figure(figsize=(14, 6))
 # fig.tight_layout()
@@ -192,13 +207,6 @@ for j in range(0, n):
 # 1: suseptible
 # 2: Recovered/Removed
 
-#####
-# Global Quarantine Flag##
-# 0 for off, 1 for on
-quarantine = 1
-
-# quarantine probability
-q = 0.7
 
 # initialize position, velocity, status, color and facecolor
 
@@ -252,15 +260,14 @@ scat = ax1.scatter(
 # Animation update function
 def update(frame_number):
 
-    current_index = frame_number % n
+    # current_index = frame_number % n
 
     global rect, dt, ax, fig, colormap, legend, s, day, day1, t0, t1, cl, po
-
+    # print(frame_number)
     day = int(frame_number / 20)
     day1 = frame_number / 20
     dt = 1 / 30  # 30fps
-    infection_radius = 0.8
-    social_distancing = 0.0
+    # print(day)
 
     # update location
 
@@ -598,8 +605,8 @@ def update(frame_number):
 
 # Construct the animation, using the update function as the animation
 # director.
-anim = animation.FuncAnimation(fig, update, interval=10)
+anim = animation.FuncAnimation(fig, update, interval=10, frames=2000)
 
 # save command below
-# anim.save('im.mp4', fps = 15.0, dpi=500)
+# anim.save('cities_q90.mp4', fps = 15.0, dpi=500)
 plt.show()
