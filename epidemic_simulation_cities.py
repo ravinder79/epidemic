@@ -12,174 +12,181 @@ import pandas as pd
 
 
 # ------------------------------------------------------------
-global day, s, x, y, day1, y1
-day = 0
-day1 = 0
-t = 0
-
-
-##### Settings###
-# Global Quarantine Flag: 0 for off, 1 for on
-quarantine = 1
-
-# quarantine probability
-q = 0.9
-
-# Infection radius:
-infection_radius = 0.8
-
-# Social distancing factor: 0- no social distancing, 1: complete distancing
-social_distancing = 0.0
-
-
-# set bounds for the 'box'
-bounds = [-100, 100, -100, 100]
-bounds_1 = [-100, -40, -100, -40]
-bounds_2 = [-30, 30, -100, -40]
-bounds_3 = [40, 100, -100, -40]
-
-bounds_4 = [-100, -40, -30, 30]
-bounds_5 = [-30, 30, -30, 30]
-bounds_6 = [40, 100, -30, 30]
-
-bounds_7 = [-100, -40, 40, 100]
-bounds_8 = [-30, 30, 40, 100]
-bounds_9 = [40, 100, 40, 100]
-# bounds = [-100, 100, -100, 100]
-boundaries = pd.concat(
-    [
-        pd.DataFrame(bounds_1),
-        pd.DataFrame(bounds_2),
-        pd.DataFrame(bounds_3),
-        pd.DataFrame(bounds_4),
-        pd.DataFrame(bounds_5),
-        pd.DataFrame(bounds_6),
-        pd.DataFrame(bounds_7),
-        pd.DataFrame(bounds_8),
-        pd.DataFrame(bounds_9),
-        pd.DataFrame(bounds),
-    ],
-    axis=1,
-)
-boundaries.columns = [
-    "bounds_1",
-    "bounds_2",
-    "bounds_3",
-    "bounds_4",
-    "bounds_5",
-    "bounds_6",
-    "bounds_7",
-    "bounds_8",
-    "bounds_9",
-    "bounds",
-]
-
-center = pd.DataFrame(
-    [
-        [-70, -70],
-        [0, -70],
-        [70, -70],
-        [-70, 0],
-        [0, 0],
-        [70, 0],
-        [-70, 70],
-        [0, 70],
-        [70, 70],
+data = pd.DataFrame(
+    columns=[
+        "sim",
+        "day",
+        "infected",
+        "recovered",
+        "quarantined",
+        "total_infections",
+        "q",
+        "ir",
+        "sd",
     ]
 )
-center.columns = ["x", "y"]
-
-
-# central location bounds
-cbounds = [-4, 4, -4, 4]
-
-# Quarantine boundaries
-bounds3 = [-20, 20, -150, -110]
-
-
-for i in range(9):
-    n = 500
-    person = np.ones(
-        n,
-        dtype=[
-            ("position", float, 2),
-            ("velocity", float, 2),
-            ("trip", int, 1),
-            ("status", int, 1),
-            ("counter", int, 1),
-            ("qtflag", int, 1),
-            ("box", int, 1),
-            ("duration", float, 1),
-            ("size", float, 1),
-            ("color", float, 4),
-            ("facecolor", float, 4),
-        ],
-    )
-
-for i in range(n):
-    person["box"][i] = np.random.choice([1, 2, 3, 4, 6, 7, 8, 9])
-
-for j in range(0, n):
-    b = person["box"][j]
-    offset = 5
-    person["position"][j][0] = np.random.uniform(
-        (boundaries.iloc[0, b - 1] + offset),
-        (boundaries.iloc[1, b - 1] - offset),
-        size=(1, 1),
-    )[0][0]
-    person["position"][j][1] = np.random.uniform(
-        (boundaries.iloc[2, b - 1] + offset),
-        (boundaries.iloc[3, b - 1] - offset),
-        size=(1, 1),
-    )[0][0]
-
-# Status definitions:
-# 0: Infected
-# 1: suseptible
-# 2: Recovered/Removed
-
-
-# initialize position, velocity, status, color and facecolor
-
-person["velocity"] = (-0.5 + np.random.random((n, 2))) * 80
-person["color"] = np.zeros((n, 4))
-person["color"][:, 1] = 0.5
-person["color"][0] = [1.0, 0.0, 0.0, 1.0]
-person["facecolor"] = np.zeros((n, 4))
-person["facecolor"] = [0, 0.55, 0.52, 1.0]  # Set color to 'teal with alpha = 1.0
-
-# initialize first infected person
-person["facecolor"][0] = [1.0, 0.0, 0.0, 0.6]
-# person['position'][0] = [-80.0 , -80.0]
-person["status"][0] = 0
-
-person["duration"] = 0.0
-person["qtflag"] = 0
-person["trip"] = 0
-person["counter"] = 0
-
-t1 = 0
-day = 0
-day1 = 0.00
-x = [0]
-y = [0]
-y1 = [100]
-s = np.ones((n)) * 3
-
-data = pd.DataFrame(columns=["sim", "day", "infected", "recovered", 'quarantined','total_infections', 'q', 'ir', 'sd'])
 data = data.fillna(0)
-z_max = 2000
-#####################################################################################################
-for sim in range(10):
+for sim in range(15):
+
+    global day, s, x, y, day1, y1
+    day = 0
+    day1 = 0
+    t = 0
+
+    ##### Settings###
+    # Global Quarantine Flag: 0 for off, 1 for on
+    quarantine = 1
+
+    # quarantine probability
+    q = 0.8
+
+    # Infection radius:
+    infection_radius = 0.8
+
+    # Social distancing factor: 0- no social distancing, 1: complete distancing
+    social_distancing = 0.0
+
+    # set bounds for the 'box'
+    bounds = [-100, 100, -100, 100]
+    bounds_1 = [-100, -40, -100, -40]
+    bounds_2 = [-30, 30, -100, -40]
+    bounds_3 = [40, 100, -100, -40]
+
+    bounds_4 = [-100, -40, -30, 30]
+    bounds_5 = [-30, 30, -30, 30]
+    bounds_6 = [40, 100, -30, 30]
+
+    bounds_7 = [-100, -40, 40, 100]
+    bounds_8 = [-30, 30, 40, 100]
+    bounds_9 = [40, 100, 40, 100]
+    # bounds = [-100, 100, -100, 100]
+    boundaries = pd.concat(
+        [
+            pd.DataFrame(bounds_1),
+            pd.DataFrame(bounds_2),
+            pd.DataFrame(bounds_3),
+            pd.DataFrame(bounds_4),
+            pd.DataFrame(bounds_5),
+            pd.DataFrame(bounds_6),
+            pd.DataFrame(bounds_7),
+            pd.DataFrame(bounds_8),
+            pd.DataFrame(bounds_9),
+            pd.DataFrame(bounds),
+        ],
+        axis=1,
+    )
+    boundaries.columns = [
+        "bounds_1",
+        "bounds_2",
+        "bounds_3",
+        "bounds_4",
+        "bounds_5",
+        "bounds_6",
+        "bounds_7",
+        "bounds_8",
+        "bounds_9",
+        "bounds",
+    ]
+
+    center = pd.DataFrame(
+        [
+            [-70, -70],
+            [0, -70],
+            [70, -70],
+            [-70, 0],
+            [0, 0],
+            [70, 0],
+            [-70, 70],
+            [0, 70],
+            [70, 70],
+        ]
+    )
+    center.columns = ["x", "y"]
+
+    # central location bounds
+    cbounds = [-4, 4, -4, 4]
+
+    # Quarantine boundaries
+    bounds3 = [-20, 20, -150, -110]
+
+    for i in range(9):
+        n = 500
+        person = np.ones(
+            n,
+            dtype=[
+                ("position", float, 2),
+                ("velocity", float, 2),
+                ("trip", int, 1),
+                ("status", int, 1),
+                ("counter", int, 1),
+                ("qtflag", int, 1),
+                ("box", int, 1),
+                ("duration", float, 1),
+                ("size", float, 1),
+                ("color", float, 4),
+                ("facecolor", float, 4),
+            ],
+        )
+
+    for i in range(n):
+        person["box"][i] = np.random.choice([1, 2, 3, 4, 6, 7, 8, 9])
+
+    for j in range(0, n):
+        b = person["box"][j]
+        offset = 5
+        person["position"][j][0] = np.random.uniform(
+            (boundaries.iloc[0, b - 1] + offset),
+            (boundaries.iloc[1, b - 1] - offset),
+            size=(1, 1),
+        )[0][0]
+        person["position"][j][1] = np.random.uniform(
+            (boundaries.iloc[2, b - 1] + offset),
+            (boundaries.iloc[3, b - 1] - offset),
+            size=(1, 1),
+        )[0][0]
+
+    # Status definitions:
+    # 0: Infected
+    # 1: suseptible
+    # 2: Recovered/Removed
+
+    # initialize position, velocity, status, color and facecolor
+
+    person["velocity"] = (-0.5 + np.random.random((n, 2))) * 80
+    person["color"] = np.zeros((n, 4))
+    person["color"][:, 1] = 0.5
+    person["color"][0] = [1.0, 0.0, 0.0, 1.0]
+    person["facecolor"] = np.zeros((n, 4))
+    person["facecolor"] = [0, 0.55, 0.52, 1.0]  # Set color to 'teal with alpha = 1.0
+
+    # initialize first infected person
+    person["facecolor"][0] = [1.0, 0.0, 0.0, 0.6]
+    # person['position'][0] = [-80.0 , -80.0]
+    person["status"][0] = 0
+
+    person["duration"] = 0.0
+    person["qtflag"] = 0
+    person["trip"] = 0
+    person["counter"] = 0
+
+    t1 = 0
+    day = 0
+    day1 = 0.00
+    x = [0]
+    y = [0]
+    y1 = [100]
+    s = np.ones((n)) * 3
+
+    z_max = 2500
+    #####################################################################################################
     for z in range(z_max):
         frame_number = z
 
-        global  dt, ax, colormap, legend
+        global dt, ax, colormap, legend
 
         day = int(frame_number / 20)
         day1 = frame_number / 20
         dt = 1 / 30  # 30fps
-        
 
         # update location
 
@@ -224,16 +231,20 @@ for sim in range(10):
             if person["trip"][i] == 1:
 
                 crossed_x1 = (
-                    person["position"][i][0] < boundaries.iloc[0, 9] + person[i]["size"] + 1
+                    person["position"][i][0]
+                    < boundaries.iloc[0, 9] + person[i]["size"] + 1
                 ) & (person[i]["qtflag"] != 2)
                 crossed_x2 = (
-                    person["position"][i][0] > boundaries.iloc[1, 9] - person[i]["size"] - 1
+                    person["position"][i][0]
+                    > boundaries.iloc[1, 9] - person[i]["size"] - 1
                 ) & (person[i]["qtflag"] != 2)
                 crossed_y1 = (
-                    person["position"][i][1] < boundaries.iloc[2, 9] + person[i]["size"] + 1
+                    person["position"][i][1]
+                    < boundaries.iloc[2, 9] + person[i]["size"] + 1
                 ) & (person[i]["qtflag"] != 2)
                 crossed_y2 = (
-                    person["position"][i][1] > boundaries.iloc[3, 9] - person[i]["size"] - 1
+                    person["position"][i][1]
+                    > boundaries.iloc[3, 9] - person[i]["size"] - 1
                 ) & (person[i]["qtflag"] != 2)
 
                 crossed_x.append(crossed_x1 | crossed_x2)
@@ -327,12 +338,14 @@ for sim in range(10):
             po[1] = center.iloc[10 - person["box"][c] - 1, 1]
 
             if person["trip"][c] == 1 and person["counter"][c] <= 5:
-               
+
                 person["position"][c][0], person["position"][c][1] = hop.linehop(
                     0, 0, person["position"][c][0], person["position"][c][1]
                 )
 
-            if (abs(person["position"][c][0]) < 5) and (abs(person["position"][c][1]) <= 5):
+            if (abs(person["position"][c][0]) < 5) and (
+                abs(person["position"][c][1]) <= 5
+            ):
                 person["counter"][c] = person["counter"][c] + 1
 
             if person["box"][c] % 2 != 0:
@@ -352,7 +365,7 @@ for sim in range(10):
                     person["box"][c] = 10 - person["box"][c]
 
             if (person["box"][c] == 2) or (person["box"][c] == 8):
-             
+
                 if (person["counter"][c]) > 8 and (
                     abs(person["position"][c][1]) < abs(po[1])
                 ):
@@ -437,11 +450,26 @@ for sim in range(10):
         #### End quarantine code block###
 
         #### Appending data to a  dict and saving as csv
-        dict = {"sim" : sim, "day": day, "infected": infected_pcnt, "quarantined": quarantined, "recovered": recovered_pcnt, 'total_infections' : total_infections_pct, 'q': q, 'ir': infection_radius, 'sd':social_distancing}
+        dict = {
+            "sim": sim,
+            "day": day,
+            "infected": infected_pcnt,
+            "quarantined": quarantined,
+            "recovered": recovered_pcnt,
+            "total_infections": total_infections_pct,
+            "q": q,
+            "ir": infection_radius,
+            "sd": social_distancing,
+        }
         data = data.append(dict, ignore_index=True)
-        print(f'sim = {sim}, z = {z}, Day = {day} , Active infections = {active_infections}, Total Infections = {total_infections_pct}')
-        if z == z_max:
-            data.to_csv('data.csv')
-        z = z+1
+        print(
+            f"sim = {sim}, z = {z}, Day = {day} , Active infections = {active_infections}, Total Infections = {total_infections_pct}"
+        )
+        if z == z_max - 1:
+            data.to_csv("data.csv")
+        z = z + 1
+    active_infections = 0
+    recovered = 0
+    quarantined = 0
+    total_infections_pct = 0
     sim = sim + 1
-    
